@@ -9,6 +9,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import PageTransition from './components/PageTransition/PageTransition';
 import PageLoader from './components/PageLoader/PageLoader';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import Membership from './components/Membership/Membership';
 import './App.css';
 
 function AnimatedRoutes({ setIsLoading }) {
@@ -57,6 +58,14 @@ function AnimatedRoutes({ setIsLoading }) {
           <PageTransition>
             <Layout>
               <Dashboard />
+            </Layout>
+          </PageTransition>
+        } />
+
+        <Route path="/membership" element={
+          <PageTransition>
+            <Layout>
+              <Membership />
             </Layout>
           </PageTransition>
         } />
