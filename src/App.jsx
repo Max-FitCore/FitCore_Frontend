@@ -13,6 +13,7 @@ import Membership from './components/Membership/Membership';
 import WorkoutPlans from './components/WorkoutPlans/WorkoutPlans';
 import Payments from './components/Payments/Payments';
 import Classes from './components/Classes/Classes';
+import Settings from './components/Settings/Settings';
 import './App.css';
 
 function AnimatedRoutes({ setIsLoading }) {
@@ -93,6 +94,14 @@ function AnimatedRoutes({ setIsLoading }) {
           <PageTransition>
             <Layout>
               <Classes />
+            </Layout>
+          </PageTransition>
+        } />
+
+        <Route path="/settings" element={
+          <PageTransition>
+            <Layout>
+              <Settings />
             </Layout>
           </PageTransition>
         } />
