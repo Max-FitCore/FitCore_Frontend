@@ -11,6 +11,7 @@ import PageLoader from './components/PageLoader/PageLoader';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
 import Membership from './components/Membership/Membership';
 import WorkoutPlans from './components/WorkoutPlans/WorkoutPlans';
+import Payments from './components/Payments/Payments';
 import './App.css';
 
 function AnimatedRoutes({ setIsLoading }) {
@@ -75,6 +76,14 @@ function AnimatedRoutes({ setIsLoading }) {
           <PageTransition>
             <Layout>
               <WorkoutPlans />
+            </Layout>
+          </PageTransition>
+        } />
+
+        <Route path="/payments" element={
+          <PageTransition>
+            <Layout>
+              <Payments />
             </Layout>
           </PageTransition>
         } />
