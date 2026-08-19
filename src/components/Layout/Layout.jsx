@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Layout.module.css';
 
 // SVG Icon Components
@@ -66,17 +67,39 @@ const Icons = {
 };
 
 const Layout = ({ children }) => {
-  const [activeItem, setActiveItem] = useState('Dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Map routes to nav labels
+  const routeToLabel = {
+    '/dashboard': 'Dashboard',
+    '/membership': 'My Membership',
+    '/workout-plans': 'Workout Plans',
+    '/payments': 'Payments',
+    '/classes': 'Classes',
+    '/notifications': 'Notifications',
+    '/settings': 'Settings',
+  };
+
+  const [activeItem, setActiveItem] = useState(
+    routeToLabel[location.pathname] || 'Dashboard'
+  );
 
   const navItems = [
-    { icon: Icons.Dashboard, label: 'Dashboard' },
-    { icon: Icons.Membership, label: 'My Membership' },
-    { icon: Icons.Workout, label: 'Workout Plans' },
-    { icon: Icons.Payments, label: 'Payments' },
-    { icon: Icons.Classes, label: 'Classes' },
-    { icon: Icons.Notifications, label: 'Notifications' },
-    { icon: Icons.Settings, label: 'Settings' },
+    { icon: Icons.Dashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Icons.Membership, label: 'My Membership', path: '/membership' },
+    { icon: Icons.Workout, label: 'Workout Plans', path: '/workout-plans' },
+    { icon: Icons.Payments, label: 'Payments', path: '/payments' },
+    { icon: Icons.Classes, label: 'Classes', path: '/classes' },
+    { icon: Icons.Notifications, label: 'Notifications', path: '/notifications' },
+    { icon: Icons.Settings, label: 'Settings', path: '/settings' },
   ];
+
+  const handleNavClick = (label, path, e) => {
+    e.preventDefault();
+    setActiveItem(label);
+    navigate(path);
+  };
 
   return (
     <div className={styles.layout}>
@@ -100,9 +123,9 @@ const Layout = ({ children }) => {
           {navItems.map((item) => (
             <a
               key={item.label}
-              href="#"
+              href={item.path}
               className={`${styles.navItem} ${activeItem === item.label ? styles.active : ''}`}
-              onClick={() => setActiveItem(item.label)}
+              onClick={(e) => handleNavClick(item.label, item.path, e)}
             >
               <item.icon />
               <span>{item.label}</span>
