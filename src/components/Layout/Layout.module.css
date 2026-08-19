@@ -268,3 +268,58 @@ body {
     padding: 0.75rem;
   }
 }
+
+/* User Section - Clickable */
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: auto;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-radius 0.2s ease;
+  border-radius: 12px;
+}
+
+.userSection:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.userSection:active {
+  transform: scale(0.98);
+}
+
+/* Keep existing styles for children */
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(166, 241, 59, 0.2);
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.userSection:hover .userAvatar {
+  border-color: rgba(166, 241, 59, 0.5);
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: #6B7280;
+}

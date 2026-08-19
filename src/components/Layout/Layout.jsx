@@ -101,6 +101,12 @@ const Layout = ({ children }) => {
     navigate(path);
   };
 
+  // Handle avatar click - navigate to settings
+  const handleAvatarClick = () => {
+    setActiveItem('Settings');
+    navigate('/settings');
+  };
+
   return (
     <div className={styles.layout}>
       {/* Sidebar */}
@@ -133,7 +139,8 @@ const Layout = ({ children }) => {
           ))}
         </nav>
 
-        <div className={styles.userSection}>
+        {/* User Section with click handler */}
+        <div className={styles.userSection} onClick={handleAvatarClick}>
           <div className={styles.userAvatar}>
             <img 
               src="https://ui-avatars.com/api/?name=John+Doe&background=A6F13B&color=05070A&size=64" 
