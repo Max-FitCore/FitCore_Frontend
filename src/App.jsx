@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import './App.css';
 import Home from './components/Home/Home';
 import Login from './components/Login/Login';
 import SignUp from './components/SignUp/SignUp';
@@ -10,6 +9,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import PageTransition from './components/PageTransition/PageTransition';
 import PageLoader from './components/PageLoader/PageLoader';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import './App.css';
 
 function AnimatedRoutes({ setIsLoading }) {
   const location = useLocation();
