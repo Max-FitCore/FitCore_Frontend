@@ -10,6 +10,7 @@ import PageTransition from './components/PageTransition/PageTransition';
 import PageLoader from './components/PageLoader/PageLoader';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
 import Membership from './components/Membership/Membership';
+import WorkoutPlans from './components/WorkoutPlans/WorkoutPlans';
 import './App.css';
 
 function AnimatedRoutes({ setIsLoading }) {
@@ -66,6 +67,14 @@ function AnimatedRoutes({ setIsLoading }) {
           <PageTransition>
             <Layout>
               <Membership />
+            </Layout>
+          </PageTransition>
+        } />
+
+        <Route path="/workout-plans" element={
+          <PageTransition>
+            <Layout>
+              <WorkoutPlans />
             </Layout>
           </PageTransition>
         } />
