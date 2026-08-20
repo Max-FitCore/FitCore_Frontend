@@ -33,6 +33,7 @@ import {
   Eye
 } from 'lucide-react';
 import styles from './Classes.module.css';
+import CreateClassModal from '../CreateClassModal/CreateClassModal';
 
 const Classes = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -42,10 +43,13 @@ const Classes = () => {
   const [showClassDetails, setShowClassDetails] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // Upcoming classes
-  const upcomingClasses = [
+  const [upcomingClasses, setUpcomingClasses] = useState([
     {
       id: 1,
       name: 'Morning HIIT Blast',
@@ -172,10 +176,10 @@ const Classes = () => {
       rating: 4.8,
       reviews: 19
     },
-  ];
+  ]);
 
   // Available classes for booking
-  const availableClasses = [
+  const [availableClasses, setAvailableClasses] = useState([
     {
       id: 7,
       name: 'Functional Fitness',
@@ -239,11 +243,11 @@ const Classes = () => {
       rating: 4.9,
       reviews: 38
     },
-  ];
+  ]);
 
   // Class statistics
   const classStats = {
-    totalClasses: 24,
+    totalClasses: upcomingClasses.length + availableClasses.length,
     classesThisMonth: 12,
     attended: 9,
     attendanceRate: 75,
@@ -310,14 +314,65 @@ const Classes = () => {
 
   const confirmBooking = () => {
     console.log(`Booking class: ${selectedClass?.name}`);
+    // Update the class status
+    if (selectedClass) {
+      const updatedClass = { ...selectedClass, isBooked: true };
+      // Update in upcoming classes
+      setUpcomingClasses(prev => 
+        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
+      );
+      // Update in available classes
+      setAvailableClasses(prev => 
+        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
+      );
+    }
     setShowBookingModal(false);
-    // Show success toast
+    showToast(`Successfully booked ${selectedClass?.name}!`);
   };
 
   const confirmWaitlist = () => {
     console.log(`Joining waitlist for: ${selectedClass?.name}`);
+    if (selectedClass) {
+      const updatedClass = { ...selectedClass, isWaitlisted: true, waitlist: selectedClass.waitlist + 1 };
+      setUpcomingClasses(prev => 
+        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
+      );
+      setAvailableClasses(prev => 
+        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
+      );
+    }
     setShowWaitlistModal(false);
-    // Show success toast
+    showToast(`Added to waitlist for ${selectedClass?.name}!`);
+  };
+
+  const handleCreateClass = (newClassData) => {
+    // Generate a unique ID
+    const newId = Math.max(
+      ...upcomingClasses.map(c => c.id),
+      ...availableClasses.map(c => c.id),
+      0
+    ) + 1;
+
+    const newClass = {
+      ...newClassData,
+      id: newId,
+      booked: 0,
+      waitlist: 0,
+      isBooked: false,
+      isWaitlisted: false,
+      rating: 0,
+      reviews: 0
+    };
+
+    // Add to upcoming classes by default
+    setUpcomingClasses(prev => [newClass, ...prev]);
+    showToast(`Class "${newClass.name}" created successfully!`);
+  };
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
   const filteredClasses = [...upcomingClasses, ...availableClasses].filter(classItem =>
@@ -328,6 +383,14 @@ const Classes = () => {
 
   return (
     <div className={styles.classes}>
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <div className={styles.toast}>
+          <CheckCircle size={18} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <div>
@@ -339,7 +402,10 @@ const Classes = () => {
             <Download size={18} />
             Export Schedule
           </button>
-          <button className={styles.btnPrimary}>
+          <button 
+            className={styles.btnPrimary}
+            onClick={() => setShowCreateModal(true)}
+          >
             <Plus size={18} />
             Create Class
           </button>
@@ -862,6 +928,13 @@ const Classes = () => {
           </div>
         </div>
       )}
+
+      {/* Create Class Modal */}
+      <CreateClassModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateClass={handleCreateClass}
+      />
     </div>
   );
 };
