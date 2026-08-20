@@ -22,6 +22,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import styles from './WorkoutPlans.module.css';
+import CreatePlanModal from '../CreatePlanModal/CreatePlanModal';
 
 const WorkoutPlans = () => {
   const [activeTab, setActiveTab] = useState('my-plans');
@@ -29,9 +30,11 @@ const WorkoutPlans = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPlanDetails, setShowPlanDetails] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // Current user's workout plans
-  const myPlans = [
+  const [myPlans, setMyPlans] = useState([
     {
       id: 1,
       name: 'Strength Training - Phase 1',
@@ -41,17 +44,17 @@ const WorkoutPlans = () => {
       sessions: 12,
       completedSessions: 8,
       duration: '8 weeks',
-      schedule: 'Mon, Wed, Fri',
+      schedule: ['Mon', 'Wed', 'Fri'],
       status: 'active',
       progress: 67,
       nextSession: 'Today, 14:30',
       image: '💪',
       exercises: [
-        { name: 'Barbell Squat', sets: 4, reps: '8-10', weight: '135 lbs', completed: true },
-        { name: 'Bench Press', sets: 4, reps: '8-10', weight: '95 lbs', completed: true },
-        { name: 'Deadlift', sets: 3, reps: '6-8', weight: '185 lbs', completed: false },
-        { name: 'Pull-ups', sets: 3, reps: '8-12', weight: 'Bodyweight', completed: false },
-        { name: 'Plank', sets: 3, reps: '45 sec', weight: 'Bodyweight', completed: false },
+        { id: 1, name: 'Barbell Squat', sets: 4, reps: '8-10', weight: '135 lbs', completed: true },
+        { id: 2, name: 'Bench Press', sets: 4, reps: '8-10', weight: '95 lbs', completed: true },
+        { id: 3, name: 'Deadlift', sets: 3, reps: '6-8', weight: '185 lbs', completed: false },
+        { id: 4, name: 'Pull-ups', sets: 3, reps: '8-12', weight: 'Bodyweight', completed: false },
+        { id: 5, name: 'Plank', sets: 3, reps: '45 sec', weight: 'Bodyweight', completed: false },
       ]
     },
     {
@@ -63,16 +66,16 @@ const WorkoutPlans = () => {
       sessions: 8,
       completedSessions: 6,
       duration: '4 weeks',
-      schedule: 'Tue, Thu, Sat',
+      schedule: ['Tue', 'Thu', 'Sat'],
       status: 'active',
       progress: 75,
       nextSession: 'Tomorrow, 09:00',
       image: '🔥',
       exercises: [
-        { name: 'Burpees', sets: 4, reps: '15', weight: 'Bodyweight', completed: true },
-        { name: 'Mountain Climbers', sets: 4, reps: '30 sec', weight: 'Bodyweight', completed: true },
-        { name: 'Kettlebell Swings', sets: 3, reps: '20', weight: '35 lbs', completed: false },
-        { name: 'Box Jumps', sets: 3, reps: '12', weight: '24" box', completed: false },
+        { id: 6, name: 'Burpees', sets: 4, reps: '15', weight: 'Bodyweight', completed: true },
+        { id: 7, name: 'Mountain Climbers', sets: 4, reps: '30 sec', weight: 'Bodyweight', completed: true },
+        { id: 8, name: 'Kettlebell Swings', sets: 3, reps: '20', weight: '35 lbs', completed: false },
+        { id: 9, name: 'Box Jumps', sets: 3, reps: '12', weight: '24" box', completed: false },
       ]
     },
     {
@@ -84,21 +87,21 @@ const WorkoutPlans = () => {
       sessions: 10,
       completedSessions: 10,
       duration: '6 weeks',
-      schedule: 'Mon, Wed, Fri',
+      schedule: ['Mon', 'Wed', 'Fri'],
       status: 'completed',
       progress: 100,
       nextSession: null,
       image: '🧘',
       exercises: [
-        { name: 'Sun Salutation', sets: 5, reps: '5 rounds', weight: 'Bodyweight', completed: true },
-        { name: 'Warrior II', sets: 3, reps: '60 sec', weight: 'Bodyweight', completed: true },
-        { name: 'Tree Pose', sets: 3, reps: '45 sec', weight: 'Bodyweight', completed: true },
+        { id: 10, name: 'Sun Salutation', sets: 5, reps: '5 rounds', weight: 'Bodyweight', completed: true },
+        { id: 11, name: 'Warrior II', sets: 3, reps: '60 sec', weight: 'Bodyweight', completed: true },
+        { id: 12, name: 'Tree Pose', sets: 3, reps: '45 sec', weight: 'Bodyweight', completed: true },
       ]
     },
-  ];
+  ]);
 
   // Available workout plans from trainers
-  const availablePlans = [
+  const [availablePlans, setAvailablePlans] = useState([
     {
       id: 101,
       name: 'Powerlifting Program',
@@ -151,10 +154,10 @@ const WorkoutPlans = () => {
       image: '⚡',
       description: 'Combine strength, endurance, and agility for complete athletic performance.'
     },
-  ];
+  ]);
 
   const workoutStats = {
-    totalWorkouts: 24,
+    totalWorkouts: myPlans.reduce((acc, plan) => acc + plan.completedSessions, 0),
     totalMinutes: 1860,
     caloriesBurned: 12450,
     streakDays: 15,
@@ -176,13 +179,16 @@ const WorkoutPlans = () => {
       'Cardio': '🔥',
       'Flexibility': '🧘',
       'Cross Training': '⚡',
+      'HIIT': '🔥',
+      'Yoga': '🧘',
+      'Pilates': '🧘',
     };
     return icons[type] || '🏋️';
   };
 
   const handleStartWorkout = (planId) => {
     console.log(`Starting workout ${planId}`);
-    // Navigate to workout session
+    showToast('Starting workout session...');
   };
 
   const handleViewPlan = (plan) => {
@@ -192,7 +198,75 @@ const WorkoutPlans = () => {
 
   const handleJoinPlan = (planId) => {
     console.log(`Joining plan ${planId}`);
-    // API call to join plan
+    const planToJoin = availablePlans.find(p => p.id === planId);
+    if (planToJoin) {
+      const newPlan = {
+        ...planToJoin,
+        id: Date.now(),
+        sessions: planToJoin.sessionsPerWeek * 4, // Approximate sessions per month
+        completedSessions: 0,
+        schedule: ['Mon', 'Wed', 'Fri'],
+        status: 'active',
+        progress: 0,
+        nextSession: 'Today',
+        exercises: [
+          { id: Date.now() + 1, name: 'Sample Exercise 1', sets: 3, reps: '10-12', weight: 'Bodyweight', completed: false },
+          { id: Date.now() + 2, name: 'Sample Exercise 2', sets: 3, reps: '8-10', weight: 'Bodyweight', completed: false },
+        ]
+      };
+      setMyPlans(prev => [newPlan, ...prev]);
+      // Remove from available plans
+      setAvailablePlans(prev => prev.filter(p => p.id !== planId));
+      showToast(`Joined "${planToJoin.name}" successfully!`);
+    }
+  };
+
+  const handleCreatePlan = (newPlanData) => {
+    // Generate a unique ID
+    const newId = Math.max(
+      ...myPlans.map(p => p.id),
+      ...availablePlans.map(p => p.id),
+      0
+    ) + 1;
+
+    // Format schedule for display
+    const scheduleString = newPlanData.schedule.length > 0 
+      ? newPlanData.schedule.join(', ')
+      : 'Mon, Wed, Fri';
+
+    const newPlan = {
+      id: newId,
+      name: newPlanData.name,
+      type: newPlanData.type,
+      level: newPlanData.level,
+      trainer: newPlanData.trainer,
+      sessions: newPlanData.sessions,
+      completedSessions: 0,
+      duration: newPlanData.duration,
+      schedule: newPlanData.schedule.length > 0 ? newPlanData.schedule : ['Mon', 'Wed', 'Fri'],
+      status: 'active',
+      progress: 0,
+      nextSession: 'Today',
+      image: newPlanData.image || '💪',
+      exercises: newPlanData.exercises.map((ex, index) => ({
+        id: Date.now() + index,
+        name: ex.name,
+        sets: ex.sets,
+        reps: ex.reps,
+        weight: ex.weight,
+        completed: false
+      }))
+    };
+
+    // Add to my plans
+    setMyPlans(prev => [newPlan, ...prev]);
+    showToast(`Plan "${newPlan.name}" created successfully!`);
+  };
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
   const filteredPlans = availablePlans.filter(plan =>
@@ -203,6 +277,14 @@ const WorkoutPlans = () => {
 
   return (
     <div className={styles.workoutPlans}>
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <div className={styles.toast}>
+          <CheckCircle size={18} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <div>
@@ -335,7 +417,7 @@ const WorkoutPlans = () => {
                         </div>
                         <div className={styles.planStat}>
                           <Clock size={16} />
-                          <span>{plan.schedule}</span>
+                          <span>{Array.isArray(plan.schedule) ? plan.schedule.join(', ') : plan.schedule}</span>
                         </div>
                         {plan.nextSession && (
                           <div className={styles.planStat}>
@@ -539,79 +621,6 @@ const WorkoutPlans = () => {
         )}
       </div>
 
-      {/* Create Plan Modal */}
-      {showCreateModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowCreateModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Create Workout Plan</h2>
-              <button 
-                className={styles.modalClose}
-                onClick={() => setShowCreateModal(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className={styles.modalBody}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Plan Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g., Summer Strength Program"
-                  className={styles.formInput}
-                />
-              </div>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Type</label>
-                  <select className={styles.formSelect}>
-                    <option>Strength</option>
-                    <option>Cardio</option>
-                    <option>Flexibility</option>
-                    <option>Cross Training</option>
-                  </select>
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Level</label>
-                  <select className={styles.formSelect}>
-                    <option>Beginner</option>
-                    <option>Intermediate</option>
-                    <option>Advanced</option>
-                  </select>
-                </div>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Duration</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g., 8 weeks"
-                  className={styles.formInput}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Description</label>
-                <textarea 
-                  placeholder="Describe your workout plan..."
-                  className={styles.formTextarea}
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className={styles.modalFooter}>
-              <button 
-                className={styles.btnSecondary}
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancel
-              </button>
-              <button className={styles.btnPrimary}>
-                Create Plan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Plan Details Modal */}
       {showPlanDetails && selectedPlan && (
         <div className={styles.modalOverlay} onClick={() => setShowPlanDetails(false)}>
@@ -649,7 +658,9 @@ const WorkoutPlans = () => {
                 </div>
                 <div className={styles.detailStat}>
                   <span className={styles.detailStatLabel}>Schedule</span>
-                  <span className={styles.detailStatValue}>{selectedPlan.schedule}</span>
+                  <span className={styles.detailStatValue}>
+                    {Array.isArray(selectedPlan.schedule) ? selectedPlan.schedule.join(', ') : selectedPlan.schedule}
+                  </span>
                 </div>
                 <div className={styles.detailStat}>
                   <span className={styles.detailStatLabel}>Progress</span>
@@ -659,8 +670,8 @@ const WorkoutPlans = () => {
 
               <div className={styles.exerciseList}>
                 <h4 className={styles.exerciseTitle}>Exercises</h4>
-                {selectedPlan.exercises.map((exercise, index) => (
-                  <div key={index} className={styles.exerciseItem}>
+                {selectedPlan.exercises && selectedPlan.exercises.map((exercise) => (
+                  <div key={exercise.id} className={styles.exerciseItem}>
                     <div className={styles.exerciseLeft}>
                       {exercise.completed ? (
                         <CheckCircle size={18} className={styles.exerciseCompleted} />
@@ -699,6 +710,13 @@ const WorkoutPlans = () => {
           </div>
         </div>
       )}
+
+      {/* Create Plan Modal */}
+      <CreatePlanModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreatePlan={handleCreatePlan}
+      />
     </div>
   );
 };
