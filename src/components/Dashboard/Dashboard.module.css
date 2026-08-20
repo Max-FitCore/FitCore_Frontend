@@ -1,5 +1,29 @@
+/* ===== Design Tokens ===== */
+.dashboard {
+  --bg-base: #05070a;
+  --bg-surface: #0b0f12;
+  --bg-surface-alt: #10151a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-lime: #a6f13b;
+  --accent-lime-soft: rgba(166, 241, 59, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --success-green: #22c55e;
+  --success-green-soft: rgba(34, 197, 94, 0.15);
+  --warning-yellow: #f59e0b;
+  --warning-yellow-soft: rgba(245, 158, 11, 0.15);
+  --error-red: #ef4444;
+  --error-red-soft: rgba(239, 68, 68, 0.15);
+  --blue: #3b82f6;
+  --blue-soft: rgba(59, 130, 246, 0.15);
+  --purple: #8b5cf6;
+  --purple-soft: rgba(139, 92, 246, 0.15);
+}
+
 .dashboard {
   animation: fadeIn 0.4s ease;
+  padding: 0.5rem 0;
 }
 
 @keyframes fadeIn {
@@ -13,61 +37,79 @@
   }
 }
 
-.pageHeader {
+/* ===== Top Bar ===== */
+.topBar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.pageTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin: 0 0 0.25rem 0;
+.greetingSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.pageSubtitle {
-  font-size: 1rem;
-  color: #9CA3AF;
+.greetingIcon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.greeting {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
 }
 
-.btnPrimary {
-  background-color: #A6F13B;
-  color: #05070A;
-  padding: 0.6rem 1.5rem;
-  border: none;
+.greetingSub {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 50px;
   font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: var(--text-secondary);
 }
 
-.btnPrimary:hover {
-  transform: scale(1.02);
-  opacity: 0.9;
+.timeDisplay svg {
+  color: var(--text-muted);
 }
 
+/* ===== Stats Grid ===== */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .statCard {
-  background: #0B0F12;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .statCard:hover {
@@ -75,40 +117,359 @@
   transform: translateY(-2px);
 }
 
-.statIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(166, 241, 59, 0.15);
+.statIconWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   flex-shrink: 0;
+}
+
+.statContent {
+  flex: 1;
+  min-width: 0;
 }
 
 .statNumber {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
 .statLabel {
-  font-size: 0.875rem;
-  color: #9CA3AF;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
 }
 
-.section {
-  margin-top: 1rem;
-}
-
-.sectionTitle {
-  font-size: 1.25rem;
+.statChange {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #FFFFFF;
-  margin: 0 0 1rem 0;
+  margin-top: 2px;
 }
 
+.changeUp {
+  color: var(--success-green);
+}
+
+.changeDown {
+  color: var(--error-red);
+}
+
+/* ===== Content Grid ===== */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(166, 241, 59, 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.cardTitle {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cardAction {
+  font-size: 0.813rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cardAction:hover {
+  color: var(--text-primary);
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footerStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footerLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.footerValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ===== Weekly Chart ===== */
+.weeklyChart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 180px;
+  gap: 0.5rem;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 8px;
+}
+
+.barContainer {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.barFill {
+  position: relative;
+  width: 60%;
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--accent-lime), #7cb838);
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: barGrow 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes barGrow {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--bar-height);
+  }
+}
+
+.barValue {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.barDay {
+  font-size: 0.688rem;
+  color: var(--text-muted);
+}
+
+/* ===== Achievements ===== */
+.achievementList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.achievementItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.achievementItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.achievementIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.achievementInfo {
+  flex: 1;
+}
+
+.achievementName {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.achievementDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.achievementBadge {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ===== User Card ===== */
+.userCard {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.userCardBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a1f24, #0b0f12);
+  z-index: 0;
+}
+
+.userCardBg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(166, 241, 59, 0.08), transparent 70%);
+}
+
+.userCardContent {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
+}
+
+.userCardTop {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.userCardAvatar {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.userCardAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--accent-lime-soft);
+  object-fit: cover;
+}
+
+.userCardLevel {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  padding: 0.1rem 0.5rem;
+  background: var(--accent-lime);
+  color: #05130a;
+  font-size: 0.625rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.userCardInfo h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.userCardMembership {
+  font-size: 0.813rem;
+  color: var(--accent-lime);
+  font-weight: 500;
+}
+
+.userCardStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.userCardStat {
+  text-align: center;
+}
+
+.userCardStatValue {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.userCardStatLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.userCardDivider {
+  width: 1px;
+  height: 30px;
+  background: var(--border-subtle);
+}
+
+/* ===== Sessions ===== */
 .sessionList {
   display: flex;
   flex-direction: column;
@@ -116,95 +477,666 @@
 }
 
 .sessionItem {
-  background: #0B0F12;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  transition: all 0.3s;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .sessionItem:hover {
-  border-color: rgba(166, 241, 59, 0.15);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .sessionTime {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 60px;
+  min-width: 52px;
 }
 
 .sessionTimeHour {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
 .sessionTimeAm {
-  font-size: 0.625rem;
+  font-size: 0.563rem;
   font-weight: 600;
-  color: #6B7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .sessionInfo {
   flex: 1;
+  min-width: 0;
+}
+
+.sessionTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .sessionName {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: #FFFFFF;
-  margin: 0 0 0.25rem 0;
-}
-
-.sessionDetails {
-  font-size: 0.875rem;
-  color: #9CA3AF;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .sessionStatus {
-  background: rgba(166, 241, 59, 0.15);
-  color: #A6F13B;
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  white-space: nowrap;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
-.sessionStatusUpcoming {
-  background: rgba(255, 255, 255, 0.05);
-  color: #6B7280;
+.statusToday {
+  background: var(--success-green-soft);
+  color: var(--success-green);
 }
 
+.statusTomorrow {
+  background: var(--warning-yellow-soft);
+  color: var(--warning-yellow);
+}
+
+.sessionDetails {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  margin: 0.125rem 0 0.25rem 0;
+}
+
+.sessionTags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sessionType {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intensityBadge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intensityHigh {
+  background: var(--error-red-soft);
+  color: var(--error-red);
+}
+
+.intensityMedium {
+  background: var(--warning-yellow-soft);
+  color: var(--warning-yellow);
+}
+
+.intensityLow {
+  background: var(--success-green-soft);
+  color: var(--success-green);
+}
+
+.sessionAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sessionAction:hover {
+  border-color: var(--accent-lime);
+  color: var(--accent-lime);
+  background: var(--accent-lime-soft);
+}
+
+/* ===== Quick Actions ===== */
+.quickActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.quickAction {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+}
+
+.quickAction:hover {
+  border-color: rgba(166, 241, 59, 0.2);
+  transform: translateY(-2px);
+}
+
+.quickActionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.quickActionLabel {
+  flex: 1;
+  font-size: 0.813rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.quickActionArrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.quickAction:hover .quickActionArrow {
+  color: var(--text-primary);
+}
+
+/* ======================================== */
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+/* ======================================== */
+
+/* ===== 1024px - Tablet Landscape ===== */
 @media (max-width: 1024px) {
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .quickActions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .weeklyChart {
+    height: 160px;
+  }
+
+  .barContainer {
+    height: 120px;
+  }
 }
 
+/* ===== 768px - Tablet Portrait ===== */
 @media (max-width: 768px) {
-  .pageHeader {
+  .topBar {
     flex-direction: column;
-  }
-  
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .sessionItem {
-    flex-wrap: wrap;
+    align-items: stretch;
     gap: 0.75rem;
   }
-  
+
+  .greetingSection {
+    gap: 0.5rem;
+  }
+
+  .greetingIcon {
+    font-size: 1.5rem;
+  }
+
+  .greeting {
+    font-size: 1.25rem;
+  }
+
+  .greetingSub {
+    font-size: 0.813rem;
+  }
+
+  .topBarActions {
+    justify-content: flex-start;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statIconWrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .statNumber {
+    font-size: 1.25rem;
+  }
+
+  .statLabel {
+    font-size: 0.75rem;
+  }
+
+  .statChange {
+    font-size: 0.688rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+  }
+
+  .quickActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quickAction {
+    padding: 0.75rem;
+  }
+
+  .quickActionLabel {
+    font-size: 0.75rem;
+  }
+
+  .userCardStats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .userCardDivider {
+    width: 80%;
+    height: 1px;
+  }
+
+  .userCardTop {
+    gap: 0.75rem;
+  }
+
+  .userCardAvatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .userCardInfo h4 {
+    font-size: 1rem;
+  }
+
+  .userCardContent {
+    padding: 1.25rem;
+  }
+
+  .weeklyChart {
+    height: 140px;
+    gap: 0.25rem;
+  }
+
+  .barContainer {
+    height: 100px;
+  }
+
+  .barFill {
+    width: 50%;
+  }
+
+  .barValue {
+    font-size: 0.563rem;
+    top: -16px;
+  }
+
+  .barDay {
+    font-size: 0.625rem;
+  }
+
+  .sessionItem {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
   .sessionTime {
     flex-direction: row;
     gap: 0.25rem;
     min-width: auto;
+  }
+
+  .sessionTimeHour {
+    font-size: 1rem;
+  }
+
+  .sessionName {
+    font-size: 0.875rem;
+  }
+
+  .sessionDetails {
+    font-size: 0.75rem;
+  }
+
+  .sessionAction {
+    width: 28px;
+    height: 28px;
+  }
+
+  .footerStat {
+    align-items: center;
+  }
+
+  .footerValue {
+    font-size: 0.813rem;
+  }
+}
+
+/* ===== 480px - Mobile ===== */
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 0.25rem 0;
+  }
+
+  .greeting {
+    font-size: 1.125rem;
+  }
+
+  .greetingSub {
+    font-size: 0.75rem;
+  }
+
+  .timeDisplay {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .statCard {
+    padding: 0.875rem;
+  }
+
+  .statIconWrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .statNumber {
+    font-size: 1.125rem;
+  }
+
+  .statLabel {
+    font-size: 0.688rem;
+  }
+
+  .statChange {
+    font-size: 0.625rem;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .cardTitle {
+    font-size: 0.9375rem;
+  }
+
+  .cardAction {
+    font-size: 0.75rem;
+  }
+
+  .cardFooter {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .footerStat {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .quickActions {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .quickAction {
+    padding: 0.625rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .quickActionIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .quickActionLabel {
+    font-size: 0.688rem;
+  }
+
+  .quickActionArrow {
+    width: 14px;
+    height: 14px;
+  }
+
+  .userCardTop {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .userCardAvatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .userCardInfo h4 {
+    font-size: 1.0625rem;
+  }
+
+  .userCardStats {
+    flex-direction: row;
+    padding: 0.75rem;
+  }
+
+  .userCardDivider {
+    width: 1px;
+    height: 30px;
+  }
+
+  .userCardContent {
+    padding: 1rem;
+  }
+
+  .weeklyChart {
+    height: 120px;
+  }
+
+  .barContainer {
+    height: 80px;
+  }
+
+  .barFill {
+    width: 40%;
+  }
+
+  .barValue {
+    font-size: 0.5rem;
+    top: -14px;
+  }
+
+  .barDay {
+    font-size: 0.563rem;
+  }
+
+  .sessionItem {
+    padding: 0.625rem;
+    gap: 0.5rem;
+  }
+
+  .sessionTimeHour {
+    font-size: 0.875rem;
+  }
+
+  .sessionName {
+    font-size: 0.813rem;
+  }
+
+  .sessionStatus {
+    font-size: 0.5rem;
+    padding: 0.05rem 0.4rem;
+  }
+
+  .sessionDetails {
+    font-size: 0.688rem;
+  }
+
+  .sessionType,
+  .intensityBadge {
+    font-size: 0.5rem;
+    padding: 0.05rem 0.4rem;
+  }
+
+  .sessionAction {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sessionAction svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .achievementItem {
+    padding: 0.625rem;
+    gap: 0.5rem;
+  }
+
+  .achievementIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .achievementName {
+    font-size: 0.813rem;
+  }
+
+  .achievementDate {
+    font-size: 0.688rem;
+  }
+}
+
+/* ===== 360px - Small Mobile ===== */
+@media (max-width: 360px) {
+  .greeting {
+    font-size: 1rem;
+  }
+
+  .greetingSub {
+    font-size: 0.688rem;
+  }
+
+  .quickActions {
+    grid-template-columns: 1fr;
+  }
+
+  .quickAction {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .statsGrid {
+    gap: 0.5rem;
+  }
+
+  .statCard {
+    padding: 0.75rem;
+  }
+
+  .statIconWrapper {
+    width: 32px;
+    height: 32px;
+  }
+
+  .statNumber {
+    font-size: 1rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+  }
+
+  .userCardStats {
+    flex-direction: column;
+  }
+
+  .userCardDivider {
+    width: 80%;
+    height: 1px;
+  }
+
+  .weeklyChart {
+    height: 100px;
+  }
+
+  .barContainer {
+    height: 60px;
+  }
+
+  .sessionItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sessionTime {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .sessionTop {
+    flex-wrap: wrap;
+  }
+
+  .sessionAction {
+    align-self: flex-end;
   }
 }
