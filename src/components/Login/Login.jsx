@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dumbbell, ChevronDown, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import loginImage from '../../assets/hero-gym.jpg'; // Adjust path based on your folder structure
 import styles from './Login.module.css';
 
 const Login = () => {
@@ -20,7 +21,7 @@ const Login = () => {
       {/* Left — image panel */}
       <div className={styles.imagePanel}>
         <img
-          src="/images/login-athlete.jpg"
+          src={loginImage}
           alt="Member deadlifting in the gym"
           className={styles.panelImage}
         />

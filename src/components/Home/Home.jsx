@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Star, ArrowRight, UserCheck, Dumbbell, BarChart3, CalendarCheck, QrCode, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import heroImage from '../../assets/hero-gym.jpg';
 import styles from './Home.module.css';
 
 const trainers = [
@@ -253,7 +254,7 @@ export default function HomePage() {
 
         <div className={styles.heroVisual}>
           <div className={styles.heroImage}>
-            <img src="/images/hero-athlete.jpg" alt="Member training with a barbell" />
+            <img src={heroImage} alt="Member training with a barbell" />
             <div className={styles.checkinCard}>
               <div>
                 <p className={styles.checkinTitle}>Today's check-ins</p>

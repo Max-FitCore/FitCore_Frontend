@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Dumbbell, Eye, EyeOff, ArrowRight, Mail, Lock, User, CheckCircle } from 'lucide-react';
+import { Dumbbell, Eye, EyeOff, ArrowRight, Mail, Lock, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import signupImage from '../../assets/hero-gym.jpg'; // Adjust path based on your folder structure
 import styles from './SignUp.module.css';
 
 const SignUp = () => {
@@ -23,7 +24,7 @@ const SignUp = () => {
       {/* Left — image panel */}
       <div className={styles.imagePanel}>
         <img
-          src={loginImage}
+          src={signupImage}
           alt="Member training in the gym"
           className={styles.panelImage}
         />
@@ -162,7 +163,7 @@ const SignUp = () => {
                 <input
                   type="checkbox"
                   checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  onChange={(e) => setAgreeTerms(e.target.value)}
                   required
                 />
                 <span>
