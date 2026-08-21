@@ -84,7 +84,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 50px;
   padding: 0.6rem 1rem;
-  margin: 1.25rem 0 1.5rem 0;
+  margin: 1.25rem 0 1rem 0;
   color: #6B7280;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -106,6 +106,17 @@ body {
 
 .searchInput::placeholder {
   color: #6B7280;
+}
+
+/* Role Label */
+.roleLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  padding: 0.5rem 0.75rem 0.25rem 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Navigation */
@@ -155,6 +166,13 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: auto;
   flex-shrink: 0;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.userSection:hover {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .userAvatar {
@@ -164,6 +182,11 @@ body {
   overflow: hidden;
   border: 2px solid rgba(166, 241, 59, 0.2);
   flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.userSection:hover .userAvatar {
+  border-color: rgba(166, 241, 59, 0.5);
 }
 
 .userAvatar img {
@@ -172,15 +195,49 @@ body {
   object-fit: cover;
 }
 
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+
 .userName {
   font-size: 0.875rem;
   font-weight: 600;
   color: #FFFFFF;
+  line-height: 1.2;
 }
 
 .userRole {
   font-size: 0.75rem;
   color: #6B7280;
+  text-transform: capitalize;
+}
+
+/* Sign Out Button */
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.signOutBtn:hover {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.signOutText {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* ==================== MAIN CONTENT ==================== */
@@ -234,13 +291,19 @@ body {
     padding: 0.75rem;
   }
 
-  .userSection {
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem 0;
+  .userInfo {
+    display: none;
   }
 
-  .userSection > div:last-child {
+  .signOutText {
+    display: none;
+  }
+
+  .signOutBtn {
+    padding: 6px;
+  }
+
+  .roleLabel {
     display: none;
   }
 
@@ -267,59 +330,4 @@ body {
   .mainContent {
     padding: 0.75rem;
   }
-}
-
-/* User Section - Clickable */
-.userSection {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  margin-top: auto;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-radius 0.2s ease;
-  border-radius: 12px;
-}
-
-.userSection:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-}
-
-.userSection:active {
-  transform: scale(0.98);
-}
-
-/* Keep existing styles for children */
-.userAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(166, 241, 59, 0.2);
-  flex-shrink: 0;
-  transition: border-color 0.2s ease;
-}
-
-.userSection:hover .userAvatar {
-  border-color: rgba(166, 241, 59, 0.5);
-}
-
-.userAvatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.userName {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-.userRole {
-  font-size: 0.75rem;
-  color: #6B7280;
 }
