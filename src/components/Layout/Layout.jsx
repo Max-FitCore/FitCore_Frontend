@@ -147,9 +147,9 @@ const navConfig = {
   trainer: {
     label: 'Trainer',
     items: [
-      { icon: Icons.Overview, label: 'Overview', path: '/trainer/dashboard' },
+      { icon: Icons.Overview, label: 'Overview', path: '/trainer/overview' },
       { icon: Icons.Members, label: 'My Members', path: '/trainer/members' },
-      { icon: Icons.Workout, label: 'Workout Plans', path: '/trainer/workouts' },
+      { icon: Icons.Workout, label: 'Workout Plans', path: '/trainer/workout-plans' },
       { icon: Icons.Schedule, label: 'Schedule', path: '/trainer/schedule' },
       { icon: Icons.Attendance, label: 'Attendance', path: '/trainer/attendance' },
       { icon: Icons.Profile, label: 'Profile', path: '/trainer/profile' },
