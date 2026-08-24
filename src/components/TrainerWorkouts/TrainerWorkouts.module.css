@@ -1,0 +1,322 @@
+/* ===== Design Tokens ===== */
+.workoutPlans {
+  --bg-base: #05070a;
+  --bg-surface: #0b0f12;
+  --bg-surface-alt: #10151a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-lime: #a6f13b;
+  --accent-lime-soft: rgba(166, 241, 59, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --success-green: #22c55e;
+  --success-green-soft: rgba(34, 197, 94, 0.15);
+  --warning-yellow: #f59e0b;
+  --warning-yellow-soft: rgba(245, 158, 11, 0.15);
+  --error-red: #ef4444;
+  --error-red-soft: rgba(239, 68, 68, 0.15);
+
+  animation: fadeIn 0.4s ease;
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg-base);
+  font-family: inherit;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Header ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.titleSection {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem 0;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.newPlanBtn {
+  padding: 0.7rem 1.4rem;
+  background: var(--accent-lime);
+  color: #05130a;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 0 0 rgba(166, 241, 59, 0);
+}
+
+.newPlanBtn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(166, 241, 59, 0.25);
+}
+
+.newPlanBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(166, 241, 59, 0.2);
+}
+
+/* ===== Plans List ===== */
+.plansList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===== Plan Card ===== */
+.planCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.planCard:hover {
+  border-color: rgba(166, 241, 59, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.planInfo {
+  flex: 1;
+}
+
+.planName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem 0;
+}
+
+.planMeta {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.difficultyBadge {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.difficultyBeginner {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.difficultyIntermediate {
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.difficultyAdvanced {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.progressTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(166, 241, 59, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-lime);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(166, 241, 59, 0.3);
+}
+
+/* ===== Days Grid ===== */
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.dayCard {
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.dayCard:hover {
+  border-color: rgba(166, 241, 59, 0.2);
+  background: rgba(16, 21, 26, 0.8);
+  transform: translateX(4px);
+}
+
+.dayTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.exerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.exerciseItem {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+@media (max-width: 1024px) {
+  .daysGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .workoutPlans {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .newPlanBtn {
+    align-self: flex-start;
+    padding: 0.65rem 1.25rem;
+  }
+
+  .planCard {
+    padding: 1.25rem;
+  }
+
+  .planName {
+    font-size: 1rem;
+  }
+
+  .planMeta {
+    font-size: 0.8125rem;
+  }
+
+  .dayCard {
+    padding: 1rem;
+  }
+
+  .dayTitle {
+    font-size: 0.875rem;
+  }
+
+  .exerciseItem {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .newPlanBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .planCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .planHeader {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dayCard {
+    padding: 0.875rem;
+  }
+
+  .dayTitle {
+    font-size: 0.8125rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .exerciseItem {
+    font-size: 0.688rem;
+  }
+}
