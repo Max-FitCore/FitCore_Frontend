@@ -1,0 +1,326 @@
+/* ===== Design Tokens (Inherited from Dashboard) ===== */
+.profilePage {
+    --bg-base: #05070a;
+    --bg-surface: #0b0f12;
+    --bg-surface-alt: #10151a;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --accent-lime: #a6f13b;
+    --accent-lime-soft: rgba(166, 241, 59, 0.15);
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --success-green: #22c55e;
+    --success-green-soft: rgba(34, 197, 94, 0.15);
+
+    animation: fadeIn 0.4s ease;
+    padding: 1.5rem 10px;
+    max-width: 1500px;
+    margin: 0 auto;
+    min-height: 90vh;
+    background: var(--bg-base);
+    font-family: inherit;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Header ===== */
+.header {
+  margin-bottom: 1.5rem;
+}
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.35rem 0;
+}
+.subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ===== Layout Grid ===== */
+.layoutGrid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;    
+    align-items: start;
+}
+
+/* ===== Profile Card (Left) ===== */
+.profileCard {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.profileCard:hover {
+    border-color: rgba(166, 241, 59, 0.25);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.imageContainer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1.1; /* Slightly taller than square */
+    background: var(--bg-surface-alt);
+    cursor: pointer;
+    overflow: hidden;
+    group: 'image';
+}
+
+.profileImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.imageContainer:hover .profileImage {
+    transform: scale(1.03);
+}
+
+.imageOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600; 
+}
+
+.imageContainer:hover .imageOverlay {
+    
+}
+
+.profileInfo {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.profileName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.profileSpecialty {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem 0;
+}
+
+.profileStats {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.starIcon {
+    color: var(--accent-lime);
+}
+
+/* ===== Details Card (Right) ===== */
+.detailsCard {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 1.5rem 1.5rem 2.80rem;
+    transition: border-color 0.3s ease;
+}
+
+.detailsCard:hover {
+    border-color: rgba(166, 241, 59, 0.15);
+}
+
+.sectionTitle {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1.5rem 0;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroupFull {
+    
+}
+
+.formLabel {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.formInput, .formTextarea {
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.formInput::placeholder, .formTextarea::placeholder {
+    color: var(--text-muted);
+}
+
+.formInput:focus, .formTextarea:focus {
+    outline: none;
+    border-color: rgba(166, 241, 59, 0.5);
+    box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.1);
+}
+
+.formTextarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.saveBtn {
+    padding: 0.7rem 1.4rem;
+    background: var(--accent-lime);
+    color: #05130a;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 0 0 rgba(166, 241, 59, 0);
+}
+
+.saveBtn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(166, 241, 59, 0.25);
+}
+
+.saveBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(166, 241, 59, 0.2);
+}
+
+/* ===== Toast Notification ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--bg-surface);
+  border: 1px solid rgba(166, 241, 59, 0.4);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(166, 241, 59, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.toastIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+  flex-shrink: 0;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+@media (max-width: 900px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profileCard {
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profilePage {
+    padding: 1rem;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .detailsCard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.2rem;
+  }
+  
+  .saveBtn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+}
