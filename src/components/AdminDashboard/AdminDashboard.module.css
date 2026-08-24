@@ -1,0 +1,624 @@
+/* ===== Design Tokens ===== */
+.dashboard {
+  --bg-base: #05070a;
+  --bg-surface: #0b0f12;
+  --bg-surface-alt: #10151a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-lime: #a6f13b;
+  --accent-lime-soft: rgba(166, 241, 59, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --success-green: #22c55e;
+  --success-green-soft: rgba(34, 197, 94, 0.15);
+  --warning-yellow: #f59e0b;
+  --warning-yellow-soft: rgba(245, 158, 11, 0.15);
+  --error-red: #ef4444;
+  --error-red-soft: rgba(239, 68, 68, 0.15);
+}
+
+.dashboard {
+  animation: fadeIn 0.4s ease;
+  padding: 0.5rem 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Top Bar ===== */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem 0;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.secondaryBtn {
+  padding: 0.7rem 1.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.secondaryBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Stats Grid ===== */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  border-color: rgba(166, 241, 59, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.statCardHighlight {
+  border-color: rgba(166, 241, 59, 0.35);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.12), 0 0 28px rgba(166, 241, 59, 0.1);
+}
+
+.statCardHighlight:hover {
+  border-color: rgba(166, 241, 59, 0.5);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.2), 0 0 34px rgba(166, 241, 59, 0.18), 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.statHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.statLabel {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.statIconHighlight {
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.08);
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+}
+
+.statMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0.1rem 0.5rem;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.statBadgeDown {
+  background: var(--error-red-soft);
+  color: var(--error-red);
+}
+
+.statNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ===== Rows ===== */
+.topRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(166, 241, 59, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.cardTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.25rem 0;
+}
+
+/* ===== Charts (Revenue growth / Weekly check-ins) ===== */
+.chartArea {
+  width: 100%;
+  height: 220px;
+  margin-bottom: 0.75rem;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.chartLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* ===== Plan Mix ===== */
+.planMixList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.planMixRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.planMixName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.planMixCount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-lime);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(166, 241, 59, 0.4);
+}
+
+/* ===== Needs Attention ===== */
+.attentionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attentionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.attentionItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-subtle);
+  transform: translateX(2px);
+}
+
+.attentionName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem 0;
+}
+
+.attentionItem .attentionName:last-child {
+  margin-bottom: 0;
+}
+
+.attentionMeta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.attentionTime {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusBadge {
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusExpiring {
+  background: var(--warning-yellow-soft);
+  color: var(--warning-yellow);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.statusExpired {
+  background: var(--error-red-soft);
+  color: var(--error-red);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* ======================================== */
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+/* ======================================== */
+
+/* ===== 1024px — Tablet Landscape ===== */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .topRow {
+    grid-template-columns: 1.4fr 1fr;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .chartArea {
+    height: 180px;
+  }
+}
+
+/* ===== 900px ===== */
+@media (max-width: 900px) {
+  .topRow,
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 768px — Tablet Portrait ===== */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0.25rem 0;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .secondaryBtn {
+    align-self: flex-start;
+    padding: 0.65rem 1.25rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statHeader {
+    margin-bottom: 0.6rem;
+  }
+
+  .statLabel {
+    font-size: 0.75rem;
+  }
+
+  .statIcon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .statValue {
+    font-size: 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .statBadge {
+    font-size: 0.625rem;
+  }
+
+  .statNote {
+    font-size: 0.688rem;
+  }
+
+  .topRow,
+  .bottomRow {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .chartArea {
+    height: 150px;
+  }
+
+  .chartLabel {
+    font-size: 0.688rem;
+  }
+
+  .planMixList {
+    gap: 1.25rem;
+  }
+
+  .planMixName {
+    font-size: 0.875rem;
+  }
+
+  .planMixCount {
+    font-size: 0.8125rem;
+  }
+
+  .attentionItem {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .attentionName {
+    font-size: 0.875rem;
+  }
+
+  .attentionMeta,
+  .attentionTime {
+    font-size: 0.75rem;
+  }
+
+  .statusBadge {
+    font-size: 0.688rem;
+    padding: 0.15rem 0.6rem;
+  }
+}
+
+/* ===== 480px — Mobile ===== */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .secondaryBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .statCard {
+    padding: 0.875rem;
+  }
+
+  .statHeader {
+    margin-bottom: 0.5rem;
+  }
+
+  .statValue {
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .cardTitle {
+    font-size: 0.9375rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .chartArea {
+    height: 120px;
+  }
+
+  .chartLabels {
+    gap: 0.25rem;
+  }
+
+  .chartLabel {
+    font-size: 0.6rem;
+  }
+
+  .planMixList {
+    gap: 1rem;
+  }
+
+  .attentionItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .statusBadge,
+  .attentionTime {
+    align-self: flex-end;
+  }
+}
+
+/* ===== 360px — Small Mobile ===== */
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.05rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .statsGrid {
+    gap: 0.5rem;
+  }
+
+  .statCard {
+    padding: 0.75rem;
+  }
+
+  .statLabel {
+    font-size: 0.6875rem;
+  }
+
+  .statIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .statValue {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 0.875rem;
+  }
+
+  .chartArea {
+    height: 100px;
+  }
+
+  .attentionName {
+    font-size: 0.8125rem;
+  }
+
+  .attentionMeta {
+    font-size: 0.688rem;
+  }
+}
