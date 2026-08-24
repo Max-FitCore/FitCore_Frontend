@@ -15,10 +15,6 @@
   --warning-yellow-soft: rgba(245, 158, 11, 0.15);
   --error-red: #ef4444;
   --error-red-soft: rgba(239, 68, 68, 0.15);
-  --blue: #3b82f6;
-  --blue-soft: rgba(59, 130, 246, 0.15);
-  --purple: #8b5cf6;
-  --purple-soft: rgba(139, 92, 246, 0.15);
 }
 
 .dashboard {
@@ -41,64 +37,57 @@
 .topBar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.greetingSection {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.greetingIcon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.greeting {
-  font-size: 1.5rem;
+.title {
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0;
+  margin: 0 0 0.35rem 0;
 }
 
-.greetingSub {
-  font-size: 0.875rem;
+.subtitle {
+  font-size: 0.9375rem;
   color: var(--text-secondary);
   margin: 0;
 }
 
-.topBarActions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.timeDisplay {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 50px;
+.startBtn {
+  padding: 0.7rem 1.4rem;
+  background: var(--accent-lime);
+  color: #05130a;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  box-shadow: 0 0 0 rgba(166, 241, 59, 0);
 }
 
-.timeDisplay svg {
-  color: var(--text-muted);
+.startBtn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(166, 241, 59, 0.25);
+}
+
+.startBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(166, 241, 59, 0.2);
 }
 
 /* ===== Stats Grid ===== */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .statCard {
@@ -106,77 +95,104 @@
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   transition: all 0.3s ease;
 }
 
 .statCard:hover {
-  border-color: rgba(166, 241, 59, 0.2);
-  transform: translateY(-2px);
+  border-color: rgba(166, 241, 59, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
-.statIconWrapper {
+.statCardHighlight {
+  border-color: rgba(166, 241, 59, 0.35);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.12), 0 0 28px rgba(166, 241, 59, 0.1);
+}
+
+.statCardHighlight:hover {
+  border-color: rgba(166, 241, 59, 0.5);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.2), 0 0 34px rgba(166, 241, 59, 0.18), 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.statHeader {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.statContent {
-  flex: 1;
-  min-width: 0;
-}
-
-.statNumber {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
 .statLabel {
-  font-size: 0.813rem;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
+  line-height: 1.3;
 }
 
-.statChange {
+.statIcon {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 2px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.changeUp {
+.statIconHighlight {
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.08);
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+}
+
+.statMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0.1rem 0.5rem;
+  background: var(--success-green-soft);
   color: var(--success-green);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 999px;
 }
 
-.changeDown {
-  color: var(--error-red);
+.statNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
-/* ===== Content Grid ===== */
-.contentGrid {
+/* ===== Rows ===== */
+.topRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.bottomRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.leftColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.rightColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 /* ===== Cards ===== */
@@ -185,291 +201,146 @@
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 1.5rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
-  border-color: rgba(166, 241, 59, 0.08);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
+  border-color: rgba(166, 241, 59, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .cardTitle {
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  margin: 0;
+  margin: 0 0 1.25rem 0;
 }
 
-.cardAction {
-  font-size: 0.813rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.cardAction:hover {
-  color: var(--text-primary);
-}
-
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 1rem;
-  margin-top: 1rem;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.footerStat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.footerLabel {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.footerValue {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* ===== Weekly Chart ===== */
+/* ===== Weekly Activity ===== */
 .weeklyChart {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: flex-end;
-  height: 180px;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  height: 200px;
+  padding-bottom: 0.5rem;
 }
 
-.barWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.barCol {
   flex: 1;
-  gap: 8px;
-}
-
-.barContainer {
-  position: relative;
-  width: 100%;
-  height: 140px;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  height: 100%;
+}
+
+.barTrack {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .barFill {
-  position: relative;
-  width: 60%;
-  min-height: 4px;
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, var(--accent-lime), #7cb838);
-  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: barGrow 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  width: 100%;
+  min-height: 6px;
+  border-radius: 999px;
+  background: var(--accent-lime);
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease, box-shadow 0.2s ease;
 }
 
-@keyframes barGrow {
-  from {
-    height: 0;
-  }
-  to {
-    height: var(--bar-height);
-  }
+.barCol:hover .barFill {
+  filter: brightness(1.15);
+  box-shadow: 0 0 12px rgba(166, 241, 59, 0.5);
 }
 
-.barValue {
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--text-muted);
+.weeklyLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .barDay {
-  font-size: 0.688rem;
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
-/* ===== Achievements ===== */
-.achievementList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+/* ===== Membership ===== */
+.membershipPlan {
+  font-size: 0.875rem;
+  color: var(--accent-lime);
+  font-weight: 500;
+  margin: 0 0 1.5rem 0;
 }
 
-.achievementItem {
+.membershipRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.membershipRenew {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.statusBadge {
+  padding: 0.15rem 0.65rem;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-lime);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(166, 241, 59, 0.4);
+}
+
+.manageBtn {
+  width: 100%;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
   transition: all 0.2s ease;
 }
 
-.achievementItem:hover {
-  background: rgba(255, 255, 255, 0.04);
+.manageBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.achievementIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 1.25rem;
-  flex-shrink: 0;
+.manageBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.achievementInfo {
-  flex: 1;
-}
-
-.achievementName {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.achievementDate {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.achievementBadge {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-/* ===== User Card ===== */
-.userCard {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.userCardBg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #1a1f24, #0b0f12);
-  z-index: 0;
-}
-
-.userCardBg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(166, 241, 59, 0.08), transparent 70%);
-}
-
-.userCardContent {
-  position: relative;
-  z-index: 1;
-  padding: 1.5rem;
-}
-
-.userCardTop {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.userCardAvatar {
-  position: relative;
-  width: 64px;
-  height: 64px;
-}
-
-.userCardAvatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid var(--accent-lime-soft);
-  object-fit: cover;
-}
-
-.userCardLevel {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  padding: 0.1rem 0.5rem;
-  background: var(--accent-lime);
-  color: #05130a;
-  font-size: 0.625rem;
-  font-weight: 700;
-  border-radius: 999px;
-}
-
-.userCardInfo h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.userCardMembership {
-  font-size: 0.813rem;
-  color: var(--accent-lime);
-  font-weight: 500;
-}
-
-.userCardStats {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  border: 1px solid var(--border-subtle);
-}
-
-.userCardStat {
-  text-align: center;
-}
-
-.userCardStatValue {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.userCardStatLabel {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.userCardDivider {
-  width: 1px;
-  height: 30px;
-  background: var(--border-subtle);
-}
-
-/* ===== Sessions ===== */
+/* ===== Upcoming Sessions ===== */
 .sessionList {
   display: flex;
   flex-direction: column;
@@ -479,194 +350,62 @@
 .sessionItem {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 1rem;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .sessionItem:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.sessionTime {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 52px;
-}
-
-.sessionTimeHour {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.sessionTimeAm {
-  font-size: 0.563rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.sessionInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.sessionTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(2px);
 }
 
 .sessionName {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
+  margin: 0 0 0.2rem 0;
+}
+
+.sessionMeta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-.sessionStatus {
-  font-size: 0.625rem;
-  font-weight: 600;
-  padding: 0.1rem 0.6rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-}
-
-.statusToday {
-  background: var(--success-green-soft);
-  color: var(--success-green);
-}
-
-.statusTomorrow {
-  background: var(--warning-yellow-soft);
-  color: var(--warning-yellow);
-}
-
-.sessionDetails {
-  font-size: 0.813rem;
+.sessionTime {
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  margin: 0.125rem 0 0.25rem 0;
-}
-
-.sessionTags {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sessionType {
-  font-size: 0.625rem;
-  font-weight: 600;
-  padding: 0.1rem 0.6rem;
-  border-radius: 999px;
-  background: var(--accent-lime-soft);
-  color: var(--accent-lime);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.intensityBadge {
-  font-size: 0.625rem;
-  font-weight: 600;
-  padding: 0.1rem 0.6rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.intensityHigh {
-  background: var(--error-red-soft);
-  color: var(--error-red);
-}
-
-.intensityMedium {
-  background: var(--warning-yellow-soft);
-  color: var(--warning-yellow);
-}
-
-.intensityLow {
-  background: var(--success-green-soft);
-  color: var(--success-green);
-}
-
-.sessionAction {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border-subtle);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.sessionAction:hover {
-  border-color: var(--accent-lime);
-  color: var(--accent-lime);
-  background: var(--accent-lime-soft);
-}
-
-/* ===== Quick Actions ===== */
-.quickActions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.quickAction {
+/* ===== Plan Progress ===== */
+.planList {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  width: 100%;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.quickAction:hover {
-  border-color: rgba(166, 241, 59, 0.2);
-  transform: translateY(-2px);
-}
-
-.quickActionIcon {
+.planRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  flex-shrink: 0;
+  margin-bottom: 0.6rem;
 }
 
-.quickActionLabel {
-  flex: 1;
-  font-size: 0.813rem;
-  font-weight: 500;
+.planName {
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--text-primary);
-  text-align: left;
 }
 
-.quickActionArrow {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.quickAction:hover .quickActionArrow {
+.planPercent {
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -674,82 +413,103 @@
 /* ===== RESPONSIVE BREAKPOINTS ===== */
 /* ======================================== */
 
-/* ===== 1024px - Tablet Landscape ===== */
+/* ===== 1024px — Tablet Landscape ===== */
 @media (max-width: 1024px) {
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 
-  .contentGrid {
+  .topRow {
+    grid-template-columns: 1.4fr 1fr;
+  }
+
+  .bottomRow {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .quickActions {
-    grid-template-columns: repeat(4, 1fr);
   }
 
   .weeklyChart {
-    height: 160px;
+    height: 170px;
   }
 
-  .barContainer {
-    height: 120px;
+  .card {
+    padding: 1.25rem;
   }
 }
 
-/* ===== 768px - Tablet Portrait ===== */
+/* ===== 900px — small tablet / large phone landscape ===== */
+@media (max-width: 900px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 768px — Tablet Portrait ===== */
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 0.25rem 0;
+  }
+
   .topBar {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
-  .greetingSection {
-    gap: 0.5rem;
+  .title {
+    font-size: 1.4rem;
   }
 
-  .greetingIcon {
-    font-size: 1.5rem;
+  .subtitle {
+    font-size: 0.85rem;
   }
 
-  .greeting {
-    font-size: 1.25rem;
-  }
-
-  .greetingSub {
-    font-size: 0.813rem;
-  }
-
-  .topBarActions {
-    justify-content: flex-start;
+  .startBtn {
+    align-self: flex-start;
+    padding: 0.65rem 1.25rem;
   }
 
   .statsGrid {
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .statCard {
     padding: 1rem;
   }
 
-  .statIconWrapper {
-    width: 40px;
-    height: 40px;
-  }
-
-  .statNumber {
-    font-size: 1.25rem;
+  .statHeader {
+    margin-bottom: 0.6rem;
   }
 
   .statLabel {
     font-size: 0.75rem;
   }
 
-  .statChange {
+  .statIcon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .statValue {
+    font-size: 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .statBadge {
+    font-size: 0.625rem;
+  }
+
+  .statNote {
     font-size: 0.688rem;
+  }
+
+  .topRow,
+  .bottomRow {
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
 
   .card {
@@ -758,124 +518,57 @@
 
   .cardTitle {
     font-size: 1rem;
-  }
-
-  .quickActions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .quickAction {
-    padding: 0.75rem;
-  }
-
-  .quickActionLabel {
-    font-size: 0.75rem;
-  }
-
-  .userCardStats {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .userCardDivider {
-    width: 80%;
-    height: 1px;
-  }
-
-  .userCardTop {
-    gap: 0.75rem;
-  }
-
-  .userCardAvatar {
-    width: 56px;
-    height: 56px;
-  }
-
-  .userCardInfo h4 {
-    font-size: 1rem;
-  }
-
-  .userCardContent {
-    padding: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .weeklyChart {
     height: 140px;
-    gap: 0.25rem;
-  }
-
-  .barContainer {
-    height: 100px;
-  }
-
-  .barFill {
-    width: 50%;
-  }
-
-  .barValue {
-    font-size: 0.563rem;
-    top: -16px;
+    gap: 0.5rem;
   }
 
   .barDay {
-    font-size: 0.625rem;
+    font-size: 0.688rem;
+  }
+
+  .membershipPlan {
+    margin-bottom: 1.25rem;
   }
 
   .sessionItem {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem;
-  }
-
-  .sessionTime {
-    flex-direction: row;
-    gap: 0.25rem;
-    min-width: auto;
-  }
-
-  .sessionTimeHour {
-    font-size: 1rem;
+    padding: 0.75rem 0.875rem;
   }
 
   .sessionName {
     font-size: 0.875rem;
   }
 
-  .sessionDetails {
+  .sessionMeta,
+  .sessionTime {
     font-size: 0.75rem;
   }
 
-  .sessionAction {
-    width: 28px;
-    height: 28px;
+  .planList {
+    gap: 1.25rem;
   }
 
-  .footerStat {
-    align-items: center;
-  }
-
-  .footerValue {
-    font-size: 0.813rem;
+  .planName {
+    font-size: 0.875rem;
   }
 }
 
-/* ===== 480px - Mobile ===== */
+/* ===== 480px — Mobile ===== */
 @media (max-width: 480px) {
-  .dashboard {
-    padding: 0.25rem 0;
+  .title {
+    font-size: 1.2rem;
   }
 
-  .greeting {
-    font-size: 1.125rem;
+  .subtitle {
+    font-size: 0.8rem;
   }
 
-  .greetingSub {
-    font-size: 0.75rem;
-  }
-
-  .timeDisplay {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
+  .startBtn {
+    width: 100%;
+    text-align: center;
   }
 
   .statsGrid {
@@ -887,21 +580,12 @@
     padding: 0.875rem;
   }
 
-  .statIconWrapper {
-    width: 36px;
-    height: 36px;
+  .statHeader {
+    margin-bottom: 0.5rem;
   }
 
-  .statNumber {
-    font-size: 1.125rem;
-  }
-
-  .statLabel {
-    font-size: 0.688rem;
-  }
-
-  .statChange {
-    font-size: 0.625rem;
+  .statValue {
+    font-size: 1.25rem;
   }
 
   .card {
@@ -909,179 +593,72 @@
     border-radius: 12px;
   }
 
-  .cardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
   .cardTitle {
     font-size: 0.9375rem;
-  }
-
-  .cardAction {
-    font-size: 0.75rem;
-  }
-
-  .cardFooter {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .footerStat {
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-
-  .quickActions {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-  }
-
-  .quickAction {
-    padding: 0.625rem 0.75rem;
-    gap: 0.5rem;
-  }
-
-  .quickActionIcon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .quickActionLabel {
-    font-size: 0.688rem;
-  }
-
-  .quickActionArrow {
-    width: 14px;
-    height: 14px;
-  }
-
-  .userCardTop {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .userCardAvatar {
-    width: 64px;
-    height: 64px;
-  }
-
-  .userCardInfo h4 {
-    font-size: 1.0625rem;
-  }
-
-  .userCardStats {
-    flex-direction: row;
-    padding: 0.75rem;
-  }
-
-  .userCardDivider {
-    width: 1px;
-    height: 30px;
-  }
-
-  .userCardContent {
-    padding: 1rem;
+    margin-bottom: 0.875rem;
   }
 
   .weeklyChart {
-    height: 120px;
+    height: 110px;
+    gap: 0.35rem;
+    padding-bottom: 0.35rem;
   }
 
-  .barContainer {
-    height: 80px;
-  }
-
-  .barFill {
-    width: 40%;
-  }
-
-  .barValue {
-    font-size: 0.5rem;
-    top: -14px;
+  .weeklyLabels {
+    gap: 0.35rem;
   }
 
   .barDay {
-    font-size: 0.563rem;
+    font-size: 0.6rem;
+  }
+
+  .membershipRow {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .membershipRenew {
+    font-size: 0.8rem;
+  }
+
+  .progressTrack {
+    margin-bottom: 1.25rem;
+  }
+
+  .manageBtn {
+    padding: 0.65rem;
+    font-size: 0.8rem;
   }
 
   .sessionItem {
-    padding: 0.625rem;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.75rem;
   }
 
-  .sessionTimeHour {
-    font-size: 0.875rem;
+  .sessionTime {
+    align-self: flex-end;
   }
 
-  .sessionName {
-    font-size: 0.813rem;
+  .planList {
+    gap: 1rem;
   }
 
-  .sessionStatus {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.4rem;
-  }
-
-  .sessionDetails {
-    font-size: 0.688rem;
-  }
-
-  .sessionType,
-  .intensityBadge {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.4rem;
-  }
-
-  .sessionAction {
-    width: 24px;
-    height: 24px;
-  }
-
-  .sessionAction svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .achievementItem {
-    padding: 0.625rem;
-    gap: 0.5rem;
-  }
-
-  .achievementIcon {
-    width: 32px;
-    height: 32px;
-    font-size: 1rem;
-  }
-
-  .achievementName {
-    font-size: 0.813rem;
-  }
-
-  .achievementDate {
-    font-size: 0.688rem;
+  .planName,
+  .planPercent {
+    font-size: 0.8125rem;
   }
 }
 
-/* ===== 360px - Small Mobile ===== */
+/* ===== 360px — Small Mobile ===== */
 @media (max-width: 360px) {
-  .greeting {
-    font-size: 1rem;
+  .title {
+    font-size: 1.05rem;
   }
 
-  .greetingSub {
-    font-size: 0.688rem;
-  }
-
-  .quickActions {
-    grid-template-columns: 1fr;
-  }
-
-  .quickAction {
-    padding: 0.5rem 0.625rem;
+  .subtitle {
+    font-size: 0.75rem;
   }
 
   .statsGrid {
@@ -1092,51 +669,32 @@
     padding: 0.75rem;
   }
 
-  .statIconWrapper {
-    width: 32px;
-    height: 32px;
+  .statLabel {
+    font-size: 0.6875rem;
   }
 
-  .statNumber {
-    font-size: 1rem;
+  .statIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .statValue {
+    font-size: 1.1rem;
   }
 
   .card {
-    padding: 0.75rem;
-  }
-
-  .userCardStats {
-    flex-direction: column;
-  }
-
-  .userCardDivider {
-    width: 80%;
-    height: 1px;
+    padding: 0.875rem;
   }
 
   .weeklyChart {
-    height: 100px;
+    height: 90px;
   }
 
-  .barContainer {
-    height: 60px;
+  .sessionName {
+    font-size: 0.8125rem;
   }
 
-  .sessionItem {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sessionTime {
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-
-  .sessionTop {
-    flex-wrap: wrap;
-  }
-
-  .sessionAction {
-    align-self: flex-end;
+  .sessionMeta {
+    font-size: 0.688rem;
   }
 }
