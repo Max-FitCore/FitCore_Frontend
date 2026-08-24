@@ -158,7 +158,7 @@ const navConfig = {
   admin: {
     label: 'Admin',
     items: [
-      { icon: Icons.Overview, label: 'Overview', path: '/admin/dashboard' },
+      { icon: Icons.Overview, label: 'Overview', path: '/admin/overview' },
       { icon: Icons.Members, label: 'Members', path: '/admin/members' },
       { icon: Icons.Trainers, label: 'Trainers', path: '/admin/trainers' },
       { icon: Icons.Classes, label: 'Classes', path: '/admin/classes' },
