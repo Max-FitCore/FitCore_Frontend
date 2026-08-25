@@ -17,7 +17,7 @@
   --error-red-soft: rgba(239, 68, 68, 0.15);
 
   animation: fadeIn 0.4s ease;
-    padding: 1.5rem 1.5rem 0;
+  padding: 1.5rem 0;
   max-width: 1400px;
   margin: 0 auto;
   min-height: 90vh;
