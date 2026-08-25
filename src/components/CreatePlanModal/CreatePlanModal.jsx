@@ -24,23 +24,18 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     sessionsPerWeek: 3,
     description: '',
     schedule: [],
-    exercises: [],
-    image: '💪'
+    days: [],
+    image: '💪',
   });
 
-  const [exerciseInput, setExerciseInput] = useState({
-    name: '',
-    sets: 3,
-    reps: '8-10',
-    weight: 'Bodyweight'
-  });
   const [scheduleInput, setScheduleInput] = useState('');
+  const [dayInput, setDayInput] = useState({ day: '', focus: '', exercises: '' });
   const [errors, setErrors] = useState({});
 
   const planTypes = ['Strength', 'Cardio', 'Flexibility', 'Cross Training', 'HIIT', 'Yoga', 'Pilates'];
   const levels = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
   const emojis = ['💪', '🔥', '🧘', '⚡', '🏋️', '🚴', '💃', '🥊', '🏃', '🧗'];
-  const dayOptions = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -49,32 +44,7 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     }
   };
 
-  const handleAddExercise = () => {
-    if (!exerciseInput.name.trim()) {
-      setErrors(prev => ({ ...prev, exercise: 'Exercise name is required' }));
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      exercises: [...prev.exercises, { ...exerciseInput, id: Date.now() }]
-    }));
-    setExerciseInput({
-      name: '',
-      sets: 3,
-      reps: '8-10',
-      weight: 'Bodyweight'
-    });
-    setErrors(prev => ({ ...prev, exercise: '' }));
-  };
-
-  const handleRemoveExercise = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      exercises: prev.exercises.filter(e => e.id !== id)
-    }));
-  };
-
+  // Schedule handlers
   const handleAddScheduleDay = () => {
     if (!scheduleInput.trim()) return;
     if (!formData.schedule.includes(scheduleInput.trim())) {
@@ -100,6 +70,43 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     }
   };
 
+  // Day handlers
+  const handleAddDay = () => {
+    if (!dayInput.day.trim() || !dayInput.focus.trim()) {
+      setErrors(prev => ({ ...prev, day: 'Day and focus are required' }));
+      return;
+    }
+
+    const exercises = dayInput.exercises
+      .split('\n')
+      .filter(e => e.trim())
+      .map(e => e.trim());
+
+    if (exercises.length === 0) {
+      setErrors(prev => ({ ...prev, day: 'Add at least one exercise' }));
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      days: [...prev.days, {
+        day: dayInput.day,
+        focus: dayInput.focus,
+        exercises: exercises
+      }]
+    }));
+
+    setDayInput({ day: '', focus: '', exercises: '' });
+    setErrors(prev => ({ ...prev, day: '' }));
+  };
+
+  const handleRemoveDay = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      days: prev.days.filter((_, i) => i !== index)
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Plan name is required';
@@ -107,7 +114,7 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     if (!formData.duration.trim()) newErrors.duration = 'Duration is required';
     if (formData.sessions < 1) newErrors.sessions = 'Sessions must be at least 1';
     if (formData.sessionsPerWeek < 1) newErrors.sessionsPerWeek = 'Sessions per week must be at least 1';
-    if (formData.exercises.length === 0) newErrors.exercises = 'Add at least one exercise';
+    if (formData.days.length === 0) newErrors.days = 'Add at least one workout day';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -118,42 +125,38 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     if (validateForm()) {
       const planData = {
         ...formData,
-        // Add additional fields for the plan
-        status: 'active',
+        difficulty: formData.level,
         progress: 0,
-        completedSessions: 0,
-        nextSession: 'Today',
-        members: 0,
-        rating: 0
       };
       onCreatePlan(planData);
       onClose();
       // Reset form
-      setFormData({
-        name: '',
-        type: 'Strength',
-        level: 'Intermediate',
-        trainer: '',
-        duration: '8 weeks',
-        sessions: 12,
-        sessionsPerWeek: 3,
-        description: '',
-        schedule: [],
-        exercises: [],
-        image: '💪'
-      });
-      setExerciseInput({
-        name: '',
-        sets: 3,
-        reps: '8-10',
-        weight: 'Bodyweight'
-      });
-      setScheduleInput('');
+      resetForm();
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      type: 'Strength',
+      level: 'Intermediate',
+      trainer: '',
+      duration: '8 weeks',
+      sessions: 12,
+      sessionsPerWeek: 3,
+      description: '',
+      schedule: [],
+      days: [],
+      image: '💪',
+    });
+    setScheduleInput('');
+    setDayInput({ day: '', focus: '', exercises: '' });
+    setErrors({});
   };
 
   const handleClose = () => {
     setErrors({});
+    resetForm();
     onClose();
   };
 
@@ -339,72 +342,79 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
             />
           </div>
 
-          {/* Exercises */}
+          {/* Add Days */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
-              Exercises <span className={styles.required}>*</span>
+              Workout Days <span className={styles.required}>*</span>
             </label>
-            <div className={styles.exerciseInputGroup}>
-              <div className={styles.exerciseInputRow}>
+            <div className={styles.dayInputGroup}>
+              <div className={styles.dayInputRow}>
+                <div className={styles.daySelectWrapper}>
+                  <select
+                    value={dayInput.day}
+                    onChange={(e) => setDayInput({ ...dayInput, day: e.target.value })}
+                    className={`${styles.formSelect} ${styles.daySelect}`}
+                  >
+                    <option value="">Select Day</option>
+                    {dayOptions.map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} className={styles.selectIcon} />
+                </div>
                 <input
                   type="text"
-                  placeholder="Exercise name"
-                  value={exerciseInput.name}
-                  onChange={(e) => setExerciseInput({ ...exerciseInput, name: e.target.value })}
-                  className={`${styles.formInput} ${styles.exerciseNameInput}`}
+                  placeholder="Focus (e.g., Chest & Triceps)"
+                  value={dayInput.focus}
+                  onChange={(e) => setDayInput({ ...dayInput, focus: e.target.value })}
+                  className={`${styles.formInput} ${styles.dayFocusInput}`}
                 />
-                <input
-                  type="number"
-                  placeholder="Sets"
-                  value={exerciseInput.sets}
-                  onChange={(e) => setExerciseInput({ ...exerciseInput, sets: parseInt(e.target.value) || 0 })}
-                  className={`${styles.formInput} ${styles.exerciseSmallInput}`}
-                />
-                <input
-                  type="text"
-                  placeholder="Reps"
-                  value={exerciseInput.reps}
-                  onChange={(e) => setExerciseInput({ ...exerciseInput, reps: e.target.value })}
-                  className={`${styles.formInput} ${styles.exerciseSmallInput}`}
-                />
-                <input
-                  type="text"
-                  placeholder="Weight"
-                  value={exerciseInput.weight}
-                  onChange={(e) => setExerciseInput({ ...exerciseInput, weight: e.target.value })}
-                  className={`${styles.formInput} ${styles.exerciseSmallInput}`}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddExercise}
-                  className={styles.addExerciseBtn}
-                >
-                  <Plus size={18} />
-                </button>
               </div>
-              {errors.exercise && <span className={styles.errorMessage}>{errors.exercise}</span>}
+              <textarea
+                placeholder="Exercises (one per line)&#10;e.g., Barbell Bench Press · 4 × 8–10"
+                value={dayInput.exercises}
+                onChange={(e) => setDayInput({ ...dayInput, exercises: e.target.value })}
+                className={`${styles.formTextarea} ${styles.dayExercisesInput}`}
+                rows={3}
+              />
+              <button
+                type="button"
+                onClick={handleAddDay}
+                className={styles.addDayBtn}
+              >
+                <Plus size={18} />
+                Add Day
+              </button>
+              {errors.day && <span className={styles.errorMessage}>{errors.day}</span>}
             </div>
-            
-            {formData.exercises.length > 0 && (
-              <div className={styles.exerciseList}>
-                {formData.exercises.map((exercise) => (
-                  <div key={exercise.id} className={styles.exerciseItem}>
-                    <div className={styles.exerciseInfo}>
-                      <span className={styles.exerciseName}>{exercise.name}</span>
-                      <span className={styles.exerciseDetails}>
-                        {exercise.sets} sets × {exercise.reps} · {exercise.weight}
+
+            {/* Existing Days */}
+            {formData.days.length > 0 && (
+              <div className={styles.daysList}>
+                {formData.days.map((day, index) => (
+                  <div key={index} className={styles.dayItem}>
+                    <div className={styles.dayItemHeader}>
+                      <span className={styles.dayItemTitle}>
+                        {day.day} — {day.focus}
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDay(index)}
+                        className={styles.removeDay}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveExercise(exercise.id)}
-                      className={styles.removeExercise}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className={styles.dayItemExercises}>
+                      {day.exercises.map((exercise, exIndex) => (
+                        <span key={exIndex} className={styles.dayItemExercise}>
+                          {exercise}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 ))}
-                {errors.exercises && <span className={styles.errorMessage}>{errors.exercises}</span>}
+                {errors.days && <span className={styles.errorMessage}>{errors.days}</span>}
               </div>
             )}
           </div>

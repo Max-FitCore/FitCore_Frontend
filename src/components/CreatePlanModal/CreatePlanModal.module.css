@@ -619,3 +619,168 @@
     height: 38px;
   }
 }
+
+/* ===== Day Input ===== */
+.dayInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dayInputRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.daySelectWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.daySelect {
+  padding-right: 36px;
+}
+
+.dayFocusInput {
+  flex: 1;
+}
+
+.dayExercisesInput {
+  min-height: 60px;
+}
+
+.addDayBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 0.813rem;
+}
+
+.addDayBtn:hover {
+  border-color: var(--accent-lime);
+  color: var(--accent-lime);
+  background: var(--accent-lime-soft);
+}
+
+/* ===== Days List ===== */
+.daysList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dayItem {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.dayItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.dayItemTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.removeDay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.removeDay:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error-red);
+}
+
+.dayItemExercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.dayItemExercise {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.125rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* ===== Scrollbar for Days List ===== */
+.daysList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.daysList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.daysList::-webkit-scrollbar-thumb {
+  background: rgba(166, 241, 59, 0.2);
+  border-radius: 10px;
+}
+
+/* ===== Emoji Grid Update ===== */
+.emojiGrid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.5rem;
+}
+
+/* ===== Responsive Updates ===== */
+@media (max-width: 768px) {
+  .dayInputRow {
+    flex-direction: column;
+  }
+  
+  .daySelectWrapper,
+  .dayFocusInput {
+    width: 100%;
+  }
+  
+  .emojiGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .emojiGrid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.25rem;
+  }
+  
+  .emojiOption {
+    font-size: 1.25rem;
+    padding: 0.375rem;
+  }
+}
