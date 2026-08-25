@@ -486,3 +486,79 @@
     font-size: 14px;
   }
 }
+
+/* Add these new styles to your existing Login.module.css */
+
+.errorBanner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 1.25rem;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.demoAccounts {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: rgba(166, 241, 59, 0.05);
+  border: 1px solid rgba(166, 241, 59, 0.2);
+  border-radius: 12px;
+}
+
+.demoTitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  font-weight: 500;
+}
+
+.demoButtons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.demoBtn {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(166, 241, 59, 0.1);
+  border: 1px solid rgba(166, 241, 59, 0.3);
+  border-radius: 8px;
+  color: var(--accent-lime);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.demoBtn:hover {
+  background: rgba(166, 241, 59, 0.2);
+  border-color: rgba(166, 241, 59, 0.5);
+  transform: translateY(-1px);
+}
+
+.demoHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: center;
+}
+
+.demoHint strong {
+  color: var(--accent-lime);
+}
