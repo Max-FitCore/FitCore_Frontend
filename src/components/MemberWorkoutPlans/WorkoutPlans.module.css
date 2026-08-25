@@ -776,7 +776,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2002;
   padding: 1rem;
 }
 
@@ -1212,4 +1212,372 @@
 
 .toast svg {
   flex-shrink: 0;
+}
+
+/* ===== Timer Overlay ===== */
+.timerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.timerCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  animation: modalIn 0.3s ease;
+}
+
+.timerHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.timerEmoji {
+  font-size: 2rem;
+}
+
+.timerTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.timerPlanType {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.timerClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.timerClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.timerDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-subtle);
+}
+
+.timerDisplay svg {
+  color: var(--accent-lime);
+}
+
+.timerTime {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+}
+
+.timerExercises {
+  margin-bottom: 1.5rem;
+}
+
+.timerExercisesTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+}
+
+.timerExerciseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.timerExerciseItem:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.timerExerciseItem:last-child {
+  border-bottom: none;
+}
+
+.timerExerciseCompleted {
+  opacity: 0.6;
+}
+
+.timerExerciseCompleted .timerExerciseName {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.timerExerciseLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timerExerciseName {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.timerExerciseDetails {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.timerExerciseBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+}
+
+.timerActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.timerPauseBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.timerPauseBtn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timerEndBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  background: var(--error-red);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.timerEndBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btnPrimary:disabled,
+.btnPrimarySmall:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+@media (max-width: 480px) {
+  .timerCard {
+    padding: 1rem;
+  }
+
+  .timerTime {
+    font-size: 2rem;
+  }
+
+  .timerDisplay {
+    padding: 1rem;
+  }
+
+  .timerActions {
+    flex-direction: column;
+  }
+}
+
+/* ===== Timer Progress ===== */
+.timerProgress {
+  margin-bottom: 1.5rem;
+}
+
+.timerProgressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.timerProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-lime), #7cb838);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.timerProgressText {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+.timerCompleteMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-top: 0.5rem;
+}
+
+.timerCompleteMessage svg {
+  color: var(--success-green);
+}
+
+/* ===== Confirmation Modal ===== */
+.confirmModal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  max-width: 420px;
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  animation: modalIn 0.3s ease;
+}
+
+.confirmModalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--error-red-soft);
+  color: var(--error-red);
+  margin: 0 auto 1rem;
+}
+
+.confirmModalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.confirmModalDescription {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.confirmModalActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btnDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  background-color: var(--error-red);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.btnDanger:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .confirmModal {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .confirmModalActions {
+    flex-direction: column;
+  }
+  
+  .confirmModalActions .btnSecondary,
+  .confirmModalActions .btnDanger {
+    width: 100%;
+    justify-content: center;
+  }
 }

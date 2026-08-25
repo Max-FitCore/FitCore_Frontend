@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Plus, 
   Search, 
   Filter, 
   Clock, 
@@ -10,28 +9,34 @@ import {
   Circle,
   ChevronRight,
   Play,
-  BarChart3,
   Users,
   Target,
   Flame,
   ArrowRight,
   X,
-  Edit,
-  Trash2,
   MoreVertical,
-  AlertCircle
+  Pause,
+  Square,
+  Timer,
+  AlertTriangle
 } from 'lucide-react';
 import styles from './WorkoutPlans.module.css';
-import CreatePlanModal from '../CreatePlanModal/CreatePlanModal';
 
 const WorkoutPlans = () => {
   const [activeTab, setActiveTab] = useState('my-plans');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPlanDetails, setShowPlanDetails] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  // Workout timer state
+  const [activeWorkout, setActiveWorkout] = useState(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [workoutCompleted, setWorkoutCompleted] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Current user's workout plans
   const [myPlans, setMyPlans] = useState([
@@ -50,8 +55,8 @@ const WorkoutPlans = () => {
       nextSession: 'Today, 14:30',
       image: '💪',
       exercises: [
-        { id: 1, name: 'Barbell Squat', sets: 4, reps: '8-10', weight: '135 lbs', completed: true },
-        { id: 2, name: 'Bench Press', sets: 4, reps: '8-10', weight: '95 lbs', completed: true },
+        { id: 1, name: 'Barbell Squat', sets: 4, reps: '8-10', weight: '135 lbs', completed: false },
+        { id: 2, name: 'Bench Press', sets: 4, reps: '8-10', weight: '95 lbs', completed: false },
         { id: 3, name: 'Deadlift', sets: 3, reps: '6-8', weight: '185 lbs', completed: false },
         { id: 4, name: 'Pull-ups', sets: 3, reps: '8-12', weight: 'Bodyweight', completed: false },
         { id: 5, name: 'Plank', sets: 3, reps: '45 sec', weight: 'Bodyweight', completed: false },
@@ -72,8 +77,8 @@ const WorkoutPlans = () => {
       nextSession: 'Tomorrow, 09:00',
       image: '🔥',
       exercises: [
-        { id: 6, name: 'Burpees', sets: 4, reps: '15', weight: 'Bodyweight', completed: true },
-        { id: 7, name: 'Mountain Climbers', sets: 4, reps: '30 sec', weight: 'Bodyweight', completed: true },
+        { id: 6, name: 'Burpees', sets: 4, reps: '15', weight: 'Bodyweight', completed: false },
+        { id: 7, name: 'Mountain Climbers', sets: 4, reps: '30 sec', weight: 'Bodyweight', completed: false },
         { id: 8, name: 'Kettlebell Swings', sets: 3, reps: '20', weight: '35 lbs', completed: false },
         { id: 9, name: 'Box Jumps', sets: 3, reps: '12', weight: '24" box', completed: false },
       ]
@@ -163,6 +168,32 @@ const WorkoutPlans = () => {
     streakDays: 15,
   };
 
+  // Timer effect
+  useEffect(() => {
+    let interval = null;
+    if (isTimerRunning && !isPaused && !workoutCompleted) {
+      interval = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, isPaused, workoutCompleted]);
+
+  // Check if all exercises are completed - but don't auto-complete anymore
+  // We'll let the user manually end the workout
+
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       active: { label: 'Active', className: styles.statusActive },
@@ -187,8 +218,106 @@ const WorkoutPlans = () => {
   };
 
   const handleStartWorkout = (planId) => {
-    console.log(`Starting workout ${planId}`);
-    showToast('Starting workout session...');
+    const plan = myPlans.find(p => p.id === planId);
+    if (plan) {
+      const resetExercises = plan.exercises.map(ex => ({
+        ...ex,
+        completed: false
+      }));
+      
+      const workoutPlan = {
+        ...plan,
+        exercises: resetExercises
+      };
+      
+      setActiveWorkout(workoutPlan);
+      setTimerSeconds(0);
+      setIsTimerRunning(true);
+      setIsPaused(false);
+      setWorkoutCompleted(false);
+      showToast(`Starting "${plan.name}"...`);
+    }
+  };
+
+  const handlePauseResume = () => {
+    if (!workoutCompleted) {
+      setIsPaused(!isPaused);
+    }
+  };
+
+  const handleCompleteWorkout = () => {
+    if (!activeWorkout) return;
+    
+    setIsTimerRunning(false);
+    setIsPaused(false);
+    setWorkoutCompleted(true);
+    
+    // Update the plan in myPlans
+    const updatedPlans = myPlans.map(plan => {
+      if (plan.id === activeWorkout.id) {
+        const newCompletedSessions = plan.completedSessions + 1;
+        const newProgress = Math.round((newCompletedSessions / plan.sessions) * 100);
+        const newStatus = newProgress >= 100 ? 'completed' : 'active';
+        
+        // Mark all exercises as completed
+        const updatedExercises = plan.exercises.map(ex => ({
+          ...ex,
+          completed: true
+        }));
+        
+        return {
+          ...plan,
+          exercises: updatedExercises,
+          completedSessions: newCompletedSessions,
+          progress: newProgress,
+          status: newStatus,
+        };
+      }
+      return plan;
+    });
+    setMyPlans(updatedPlans);
+    
+    const minutes = Math.floor(timerSeconds / 60);
+    showToast(`🎉 Workout complete! ${formatTime(timerSeconds)} elapsed.`);
+    
+    // Close the timer after a delay
+    setTimeout(() => {
+      setActiveWorkout(null);
+      setTimerSeconds(0);
+      setWorkoutCompleted(false);
+    }, 2000);
+  };
+
+  const handleCloseTimer = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmClose = () => {
+    setShowConfirmModal(false);
+    setIsTimerRunning(false);
+    setIsPaused(false);
+    setActiveWorkout(null);
+    setTimerSeconds(0);
+    setWorkoutCompleted(false);
+    showToast('Workout closed. Progress not saved.');
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirmModal(false);
+  };
+
+  const handleEndWorkout = () => {
+    if (activeWorkout) {
+      // Check if all exercises are completed
+      const allCompleted = activeWorkout.exercises.every(ex => ex.completed);
+      if (allCompleted) {
+        // All exercises done - complete the workout
+        handleCompleteWorkout();
+      } else {
+        // Show confirmation modal
+        setShowConfirmModal(true);
+      }
+    }
   };
 
   const handleViewPlan = (plan) => {
@@ -203,7 +332,7 @@ const WorkoutPlans = () => {
       const newPlan = {
         ...planToJoin,
         id: Date.now(),
-        sessions: planToJoin.sessionsPerWeek * 4, // Approximate sessions per month
+        sessions: planToJoin.sessionsPerWeek * 4,
         completedSessions: 0,
         schedule: ['Mon', 'Wed', 'Fri'],
         status: 'active',
@@ -215,52 +344,9 @@ const WorkoutPlans = () => {
         ]
       };
       setMyPlans(prev => [newPlan, ...prev]);
-      // Remove from available plans
       setAvailablePlans(prev => prev.filter(p => p.id !== planId));
       showToast(`Joined "${planToJoin.name}" successfully!`);
     }
-  };
-
-  const handleCreatePlan = (newPlanData) => {
-    // Generate a unique ID
-    const newId = Math.max(
-      ...myPlans.map(p => p.id),
-      ...availablePlans.map(p => p.id),
-      0
-    ) + 1;
-
-    // Format schedule for display
-    const scheduleString = newPlanData.schedule.length > 0 
-      ? newPlanData.schedule.join(', ')
-      : 'Mon, Wed, Fri';
-
-    const newPlan = {
-      id: newId,
-      name: newPlanData.name,
-      type: newPlanData.type,
-      level: newPlanData.level,
-      trainer: newPlanData.trainer,
-      sessions: newPlanData.sessions,
-      completedSessions: 0,
-      duration: newPlanData.duration,
-      schedule: newPlanData.schedule.length > 0 ? newPlanData.schedule : ['Mon', 'Wed', 'Fri'],
-      status: 'active',
-      progress: 0,
-      nextSession: 'Today',
-      image: newPlanData.image || '💪',
-      exercises: newPlanData.exercises.map((ex, index) => ({
-        id: Date.now() + index,
-        name: ex.name,
-        sets: ex.sets,
-        reps: ex.reps,
-        weight: ex.weight,
-        completed: false
-      }))
-    };
-
-    // Add to my plans
-    setMyPlans(prev => [newPlan, ...prev]);
-    showToast(`Plan "${newPlan.name}" created successfully!`);
   };
 
   const showToast = (message) => {
@@ -275,6 +361,23 @@ const WorkoutPlans = () => {
     plan.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const toggleExerciseComplete = (exerciseId) => {
+    if (activeWorkout && !workoutCompleted) {
+      const updatedExercises = activeWorkout.exercises.map(ex =>
+        ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
+      );
+      setActiveWorkout({
+        ...activeWorkout,
+        exercises: updatedExercises
+      });
+    }
+  };
+
+  // Count completed exercises
+  const completedCount = activeWorkout?.exercises?.filter(ex => ex.completed).length || 0;
+  const totalCount = activeWorkout?.exercises?.length || 0;
+  const allExercisesCompleted = totalCount > 0 && completedCount === totalCount;
+
   return (
     <div className={styles.workoutPlans}>
       {/* Success Toast */}
@@ -285,19 +388,133 @@ const WorkoutPlans = () => {
         </div>
       )}
 
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className={styles.modalOverlay} onClick={handleCancelClose}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmModalIcon}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className={styles.confirmModalTitle}>End Workout?</h3>
+            <p className={styles.confirmModalDescription}>
+              You haven't completed all exercises. Are you sure you want to end this workout?
+            </p>
+            <div className={styles.confirmModalActions}>
+              <button 
+                className={styles.btnSecondary}
+                onClick={handleCancelClose}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.btnDanger}
+                onClick={handleConfirmClose}
+              >
+                End Workout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Workout Timer Overlay */}
+      {activeWorkout && (
+        <div className={styles.timerOverlay}>
+          <div className={styles.timerCard}>
+            <div className={styles.timerHeader}>
+              <span className={styles.timerEmoji}>{activeWorkout.image}</span>
+              <div>
+                <h3 className={styles.timerTitle}>{activeWorkout.name}</h3>
+                <span className={styles.timerPlanType}>{activeWorkout.type}</span>
+              </div>
+              <button 
+                className={styles.timerClose}
+                onClick={handleCloseTimer}
+                disabled={workoutCompleted}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.timerDisplay}>
+              <Timer size={32} />
+              <span className={styles.timerTime}>{formatTime(timerSeconds)}</span>
+            </div>
+
+            {/* Progress indicator */}
+            <div className={styles.timerProgress}>
+              <div className={styles.timerProgressBar}>
+                <div 
+                  className={styles.timerProgressFill} 
+                  style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+                />
+              </div>
+              <span className={styles.timerProgressText}>
+                {completedCount} / {totalCount} exercises complete
+              </span>
+            </div>
+
+            <div className={styles.timerExercises}>
+              <h4 className={styles.timerExercisesTitle}>Exercises</h4>
+              {activeWorkout.exercises.map((exercise) => (
+                <div 
+                  key={exercise.id} 
+                  className={`${styles.timerExerciseItem} ${exercise.completed ? styles.timerExerciseCompleted : ''}`}
+                  onClick={() => toggleExerciseComplete(exercise.id)}
+                >
+                  <div className={styles.timerExerciseLeft}>
+                    {exercise.completed ? (
+                      <CheckCircle size={18} className={styles.exerciseCompleted} />
+                    ) : (
+                      <Circle size={18} className={styles.exercisePending} />
+                    )}
+                    <div>
+                      <div className={styles.timerExerciseName}>{exercise.name}</div>
+                      <div className={styles.timerExerciseDetails}>
+                        {exercise.sets} sets × {exercise.reps} · {exercise.weight}
+                      </div>
+                    </div>
+                  </div>
+                  {exercise.completed && (
+                    <span className={styles.timerExerciseBadge}>Done</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {workoutCompleted ? (
+              <div className={styles.timerCompleteMessage}>
+                <CheckCircle size={24} />
+                <span>Workout Complete! 🎉</span>
+              </div>
+            ) : (
+              <div className={styles.timerActions}>
+                <button 
+                  className={styles.timerPauseBtn}
+                  onClick={handlePauseResume}
+                >
+                  {isPaused ? <Play size={18} /> : <Pause size={18} />}
+                  {isPaused ? 'Resume' : 'Pause'}
+                </button>
+                <button 
+                  className={styles.timerEndBtn}
+                  onClick={handleEndWorkout}
+                >
+                  <Square size={18} />
+                  End Workout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Workout Plans</h1>
           <p className={styles.pageSubtitle}>Track your progress, follow programs, and achieve your fitness goals</p>
         </div>
-        <button 
-          className={styles.btnPrimary}
-          onClick={() => setShowCreateModal(true)}
-        >
-          <Plus size={18} />
-          Create Plan
-        </button>
       </div>
 
       {/* Stats Overview */}
@@ -372,7 +589,7 @@ const WorkoutPlans = () => {
                 <div className={styles.emptyIcon}>🏋️</div>
                 <h3 className={styles.emptyTitle}>No workout plans yet</h3>
                 <p className={styles.emptyDescription}>
-                  Get started by joining a plan from our trainers or create your own custom plan.
+                  Get started by joining a plan from our trainers.
                 </p>
                 <button 
                   className={styles.btnPrimary}
@@ -449,9 +666,10 @@ const WorkoutPlans = () => {
                         <button 
                           className={styles.btnPrimarySmall}
                           onClick={() => handleStartWorkout(plan.id)}
+                          disabled={activeWorkout !== null}
                         >
                           <Play size={16} />
-                          Start Workout
+                          {activeWorkout ? 'Workout in progress...' : 'Start Workout'}
                         </button>
                       )}
                       <button 
@@ -528,6 +746,7 @@ const WorkoutPlans = () => {
                     <button 
                       className={styles.btnPrimarySmall}
                       onClick={() => handleJoinPlan(plan.id)}
+                      disabled={activeWorkout !== null}
                     >
                       Join Plan
                       <ArrowRight size={16} />
@@ -701,7 +920,14 @@ const WorkoutPlans = () => {
                 Close
               </button>
               {selectedPlan.status === 'active' && (
-                <button className={styles.btnPrimary}>
+                <button 
+                  className={styles.btnPrimary}
+                  onClick={() => {
+                    setShowPlanDetails(false);
+                    handleStartWorkout(selectedPlan.id);
+                  }}
+                  disabled={activeWorkout !== null}
+                >
                   <Play size={16} />
                   Start Workout
                 </button>
@@ -710,13 +936,6 @@ const WorkoutPlans = () => {
           </div>
         </div>
       )}
-
-      {/* Create Plan Modal */}
-      <CreatePlanModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCreatePlan={handleCreatePlan}
-      />
     </div>
   );
 };
