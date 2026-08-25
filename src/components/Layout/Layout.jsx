@@ -129,6 +129,19 @@ const Icons = {
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   ),
+  Menu: () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  ),
+  Close: () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
 };
 
 // Navigation configuration for each role
@@ -173,6 +186,7 @@ const navConfig = {
 const Layout = ({ children, userRole = 'member', userData = {} }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const defaultUser = {
     member: {
@@ -212,18 +226,59 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
     e.preventDefault();
     setActiveItem(label);
     navigate(path);
+    // Close mobile menu after navigation
+    setIsMobileMenuOpen(false);
   };
 
   const handleSignOut = () => {
     navigate('/sign-in');
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
+      {/* Mobile Header Bar */}
+      <div className={styles.mobileHeader}>
+        <button 
+          className={styles.mobileMenuBtn}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          {isMobileMenuOpen ? <Icons.Close /> : <Icons.Menu />}
+        </button>
+        <div className={styles.mobileLogo}>
+          <span className={styles.mobileLogoIcon}>💪</span>
+          <span className={styles.mobileLogoText}>
+            Fit<span className={styles.mobileLogoAccent}>Core</span>
+          </span>
+        </div>
+        <div className={styles.mobileUserAvatar}>
+          <img src={user.avatar} alt={user.name} />
+        </div>
+      </div>
+
+      {/* Backdrop for mobile */}
+      {isMobileMenuOpen && (
+        <div 
+          className={styles.backdrop}
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>💪</span>
-          <span className={styles.logoText}>Fit<span className={styles.logoAccent}>Core</span></span>
+          <span className={styles.logoIcon}></span>
+          <span className={styles.logoText}>
+            Fit<span className={styles.logoAccent}>Core</span>
+          </span>
         </div>
 
         <div className={styles.searchWrapper}>
@@ -253,10 +308,7 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
 
         <div className={styles.userSection}>
           <div className={styles.userAvatar}>
-            <img 
-              src={user.avatar}
-              alt={user.name}
-            />
+            <img src={user.avatar} alt={user.name} />
           </div>
           <div className={styles.userInfo}>
             <div className={styles.userName}>{user.name}</div>
@@ -273,6 +325,7 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className={styles.mainContent}>
         {children}
       </main>
