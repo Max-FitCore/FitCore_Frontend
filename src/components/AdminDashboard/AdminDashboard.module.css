@@ -563,7 +563,6 @@
   }
 
   .attentionItem {
-    flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.75rem;
