@@ -19,7 +19,7 @@
 
 .dashboard {
   animation: fadeIn 0.4s ease;
-  padding: 0.5rem 0;
+  padding: 1.5rem 0;
 }
 
 @keyframes fadeIn {
@@ -621,4 +621,142 @@
   .attentionMeta {
     font-size: 0.688rem;
   }
+}
+
+/* ===== Secondary Button (Full analytics) ===== */
+.secondaryBtn {
+  padding: 0.7rem 1.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(166, 241, 59, 0.3);
+  color: var(--accent-lime);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.secondaryBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Downward Trend Badge ===== */
+.statBadgeDown {
+  background: var(--error-red-soft);
+  color: var(--error-red);
+}
+
+/* ===== Missing Chart/Attention Styles ===== */
+.chartArea {
+  height: 200px;
+  background: linear-gradient(180deg, rgba(166, 241, 59, 0.05) 0%, transparent 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.chartLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.planMixList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planMixItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.planMixRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.planMixName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.planMixCount {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.attentionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attentionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.attentionItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(2px);
+}
+
+.attentionName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem 0;
+}
+
+.attentionMeta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.attentionTime {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusExpiring {
+  background: var(--warning-yellow-soft);
+  color: var(--warning-yellow);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.statusExpired {
+  background: var(--error-red-soft);
+  color: var(--error-red);
+  border-color: rgba(239, 68, 68, 0.3);
 }

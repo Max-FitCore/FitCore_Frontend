@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DollarSign,
   Users,
@@ -9,6 +10,8 @@ import {
 import styles from './AdminDashboard.module.css';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+
   const overview = {
     title: 'Gym overview',
     subtitle: 'August 2026 performance across all locations.',
@@ -69,6 +72,10 @@ const AdminDashboard = () => {
     { id: 4, type: 'activity', name: 'Omar Haddad checked in', time: 'Today · 07:15' },
   ];
 
+  const handleAnalyticsClick = () => {
+    navigate('/admin/analytics');
+  };
+
   return (
     <div className={styles.dashboard}>
       {/* Top Bar */}
@@ -77,7 +84,9 @@ const AdminDashboard = () => {
           <h1 className={styles.title}>{overview.title}</h1>
           <p className={styles.subtitle}>{overview.subtitle}</p>
         </div>
-        <button className={styles.secondaryBtn}>Full analytics</button>
+        <button className={styles.secondaryBtn} onClick={handleAnalyticsClick}>
+          Full analytics
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -120,7 +129,6 @@ const AdminDashboard = () => {
             ))}
           </div>
         </div>
-
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Plan mix</h3>
           <div className={styles.planMixList}>
@@ -150,7 +158,6 @@ const AdminDashboard = () => {
             ))}
           </div>
         </div>
-
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Needs attention</h3>
           <div className={styles.attentionList}>
