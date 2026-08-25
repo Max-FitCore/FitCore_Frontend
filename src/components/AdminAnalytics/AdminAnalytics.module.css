@@ -1,0 +1,485 @@
+/* ===== Design Tokens ===== */
+.analyticsPage {
+  --bg-base: #05070a;
+  --bg-surface: #0b0f12;
+  --bg-surface-alt: #10151a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-lime: #a6f13b;
+  --accent-lime-soft: rgba(166, 241, 59, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --success-green: #22c55e;
+  --success-green-soft: rgba(34, 197, 94, 0.15);
+  --warning-yellow: #f59e0b;
+  --warning-yellow-soft: rgba(245, 158, 11, 0.15);
+  --error-red: #ef4444;
+  --error-red-soft: rgba(239, 68, 68, 0.15);
+
+  animation: fadeIn 0.4s ease;
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg-base);
+  font-family: inherit;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Header ===== */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem 0;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ===== Stats Grid ===== */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  border-color: rgba(166, 241, 59, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.statCardHighlight {
+  border-color: rgba(166, 241, 59, 0.35);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.12), 0 0 28px rgba(166, 241, 59, 0.1);
+}
+
+.statCardHighlight:hover {
+  border-color: rgba(166, 241, 59, 0.5);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.2), 0 0 34px rgba(166, 241, 59, 0.18), 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.statHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.statLabel {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.statIconHighlight {
+  background: var(--accent-lime-soft);
+  color: var(--accent-lime);
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.08);
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+}
+
+.statMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0.15rem 0.55rem;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.statNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ===== Chart Cards ===== */
+.chartCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+    padding: 20px 20px 40px;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chartCard:hover {
+  border-color: rgba(166, 241, 59, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.chartTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+}
+
+/* ===== Revenue Chart ===== */
+.revenueChart {
+  height: 280px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 2rem;
+  gap: 0.5rem;
+}
+
+.chartBarGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.chartBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  justify-content: center;
+  flex: 1;
+}
+
+.chartBar {
+  width: 12px;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.chartBarRevenue {
+  background: var(--accent-lime);
+}
+
+.chartBarRevenue:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 12px rgba(166, 241, 59, 0.5);
+}
+
+.chartBarMembers {
+  background: rgba(166, 241, 59, 0.3);
+}
+
+.chartBarMembers:hover {
+  background: rgba(166, 241, 59, 0.5);
+}
+
+.chartMonth {
+  position: absolute;
+  bottom: -1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chartLegend {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legendDotRevenue {
+  background: var(--accent-lime);
+}
+
+.legendDotMembers {
+  background: rgba(166, 241, 59, 0.3);
+}
+
+/* ===== Bottom Row ===== */
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+/* ===== Attendance Chart ===== */
+.attendanceChart {
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.attendanceBarCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.attendanceBar {
+  width: 100%;
+  max-width: 40px;
+  border-radius: 6px 6px 0 0;
+  background: var(--accent-lime);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.attendanceBar:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 12px rgba(166, 241, 59, 0.5);
+}
+
+.attendanceDay {
+  position: absolute;
+  bottom: -1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 100%;
+  text-align: center;
+}
+
+/* ===== Membership Distribution ===== */
+.distributionList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.distributionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.distributionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.distributionName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.distributionStats {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.distributionTrack {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.distributionFill {
+  height: 100%;
+  background: var(--accent-lime);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(166, 241, 59, 0.3);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
+
+  .revenueChart {
+    height: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .analyticsPage {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .statCard {
+    padding: 1.25rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .chartCard {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .chartTitle {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .revenueChart {
+    height: 200px;
+  }
+
+  .chartBar {
+    width: 8px;
+  }
+
+  .attendanceChart {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.35rem;
+  }
+
+  .chartCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .revenueChart {
+    height: 160px;
+  }
+
+  .chartBar {
+    width: 6px;
+  }
+
+  .attendanceChart {
+    height: 140px;
+    gap: 0.5rem;
+  }
+
+  .attendanceBar {
+    max-width: 30px;
+  }
+
+  .chartMonth,
+  .attendanceDay {
+    font-size: 0.65rem;
+  }
+
+  .chartLegend {
+    gap: 1rem;
+  }
+
+  .legendItem {
+    font-size: 0.75rem;
+  }
+}
