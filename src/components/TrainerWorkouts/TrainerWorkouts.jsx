@@ -20,6 +20,7 @@ const WorkoutPlans = () => {
       sessionsPerWeek: 4,
       trainer: 'Mike Chen',
       image: '💪',
+      schedule: ['Monday', 'Tuesday', 'Thursday', 'Saturday'],
       days: [
         {
           day: 'Monday',
@@ -75,6 +76,7 @@ const WorkoutPlans = () => {
       sessionsPerWeek: 3,
       trainer: 'Sarah Johnson',
       image: '🔥',
+      schedule: ['Wednesday', 'Friday', 'Sunday'],
       days: [
         {
           day: 'Wednesday',
@@ -135,7 +137,6 @@ const WorkoutPlans = () => {
       id: Date.now(),
       ...planData,
       progress: 0,
-      days: planData.days || [],
     };
     setWorkoutPlans([...workoutPlans, newPlan]);
   };
