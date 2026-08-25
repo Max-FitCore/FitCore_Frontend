@@ -320,3 +320,326 @@
     font-size: 0.688rem;
   }
 }
+
+/* ===== Plan Name Row with Actions ===== */
+.planNameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.planName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* ===== Action Buttons ===== */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(166, 241, 59, 0.1);
+  border-color: rgba(166, 241, 59, 0.3);
+  color: var(--accent-lime);
+  transform: scale(1.05);
+}
+
+.actionBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--error-red);
+}
+
+/* ===== Responsive updates ===== */
+@media (max-width: 768px) {
+  .planNameRow {
+    flex-wrap: wrap;
+  }
+  
+  .actionButtons {
+    gap: 0.25rem;
+  }
+  
+  .actionBtn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ===== Plan Name Group ===== */
+.planNameGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.planIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.planNameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.planName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* ===== Plan Tags ===== */
+.planTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.planTag {
+  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 0.688rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ===== Progress with Label ===== */
+.progressTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(166, 241, 59, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-lime);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(166, 241, 59, 0.3);
+}
+
+.progressLabel {
+  position: absolute;
+  right: 0;
+  top: -1.25rem;
+  font-size: 0.688rem;
+  color: var(--text-muted);
+}
+
+/* ===== Exercise Preview ===== */
+.exercisePreview {
+  margin-bottom: 1rem;
+}
+
+.exerciseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: rgba(166, 241, 59, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.813rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.exerciseToggle:hover {
+  background: rgba(166, 241, 59, 0.1);
+  border-color: rgba(166, 241, 59, 0.2);
+  color: var(--text-primary);
+}
+
+.exerciseList {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.exercisePreviewItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.exerciseNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(166, 241, 59, 0.1);
+  border-radius: 50%;
+  font-size: 0.688rem;
+  font-weight: 600;
+  color: var(--accent-lime);
+  flex-shrink: 0;
+}
+
+/* ===== Days Grid Updates ===== */
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.dayCard {
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.dayCard:hover {
+  border-color: rgba(166, 241, 59, 0.2);
+  background: rgba(16, 21, 26, 0.8);
+  transform: translateX(4px);
+}
+
+.dayTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.dayExerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.exerciseItem {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border-subtle);
+}
+
+.exerciseMore {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0 0;
+  font-style: italic;
+}
+
+/* ===== Action Buttons ===== */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(166, 241, 59, 0.1);
+  border-color: rgba(166, 241, 59, 0.3);
+  color: var(--accent-lime);
+  transform: scale(1.05);
+}
+
+.actionBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--error-red);
+}
+
+/* ===== Responsive Updates ===== */
+@media (max-width: 1024px) {
+  .daysGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .planNameRow {
+    flex-wrap: wrap;
+  }
+  
+  .actionButtons {
+    gap: 0.25rem;
+  }
+  
+  .actionBtn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .planTags {
+    gap: 0.25rem;
+  }
+  
+  .planTag {
+    font-size: 0.625rem;
+    padding: 0.15rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .planNameGroup {
+    gap: 0.5rem;
+  }
+  
+  .planIcon {
+    font-size: 1.25rem;
+  }
+  
+  .planName {
+    font-size: 0.9375rem;
+  }
+}
