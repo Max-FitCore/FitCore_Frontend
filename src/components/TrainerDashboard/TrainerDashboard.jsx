@@ -76,7 +76,6 @@ const TrainerDashboard = () => {
           <h1 className={styles.title}>Good evening, {trainer.name}</h1>
           <p className={styles.subtitle}>{trainer.scheduleNote}</p>
         </div>
-        <button className={styles.createBtn}>Create plan</button>
       </div>
 
       {/* Stats Grid */}
