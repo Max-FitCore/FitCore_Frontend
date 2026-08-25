@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Star, ArrowRight, UserCheck, Dumbbell, BarChart3, CalendarCheck, QrCode, CreditCard } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Star, ArrowRight, UserCheck, Dumbbell, BarChart3, CalendarCheck, QrCode, CreditCard, User, LogOut, ChevronDown, LayoutDashboard, Users, Calendar, Settings, CreditCard as CreditCardIcon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../../assets/hero-gym.jpg';
 import styles from './Home.module.css';
 
@@ -115,13 +115,121 @@ const plans = [
   },
 ];
 
+// Navigation items by role
+const navigationByRole = {
+  member: [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Membership', path: '/membership', icon: UserCheck },
+    { name: 'Workout Plans', path: '/workout-plans', icon: Dumbbell },
+    { name: 'Classes', path: '/classes', icon: Calendar },
+    { name: 'Payments', path: '/payments', icon: CreditCardIcon },
+    { name: 'Settings', path: '/settings', icon: Settings },
+  ],
+  trainer: [
+    { name: 'Dashboard', path: '/trainer/overview', icon: LayoutDashboard },
+    { name: 'Members', path: '/trainer/members', icon: Users },
+    { name: 'Workout Plans', path: '/trainer/workout-plans', icon: Dumbbell },
+    { name: 'Schedule', path: '/trainer/schedule', icon: Calendar },
+    { name: 'Attendance', path: '/trainer/attendance', icon: CalendarCheck },
+    { name: 'Profile', path: '/trainer/profile', icon: User },
+  ],
+  admin: [
+    { name: 'Dashboard', path: '/admin/overview', icon: LayoutDashboard },
+    { name: 'Members', path: '/admin/members', icon: Users },
+    { name: 'Trainers', path: '/admin/trainers', icon: User },
+    { name: 'Classes', path: '/admin/classes', icon: Calendar },
+    { name: 'Payments', path: '/admin/payments', icon: CreditCardIcon },
+    { name: 'Plans', path: '/admin/plans', icon: BarChart3 },
+    { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
+    { name: 'Settings', path: '/admin/settings', icon: Settings },
+  ],
+};
+
+// Helper function to get user from localStorage
+const getUserFromStorage = () => {
+  try {
+    const userData = localStorage.getItem('fitcore_user');
+    if (userData) {
+      return JSON.parse(userData);
+    }
+  } catch (e) {
+    console.error('Error reading user data:', e);
+  }
+  return null;
+};
+
 export default function HomePage() {
+  // Read user from localStorage on mount
+  const [user, setUser] = useState(() => getUserFromStorage());
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  
   // Refs for scroll animations
   const featuresRef = useRef(null);
   const plansRef = useRef(null);
   const trainersRef = useRef(null);
   const testimonialsRef = useRef(null);
   const ctaRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Listen for storage changes (in case user signs in/out in another tab)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(getUserFromStorage());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle sign out
+  const handleSignOut = () => {
+    localStorage.removeItem('fitcore_user');
+    setUser(null);
+    setIsDropdownOpen(false);
+    navigate('/');
+  };
+
+  // Handle navigation from dropdown
+  const handleNavigation = (path) => {
+    setIsDropdownOpen(false);
+    navigate(path);
+  };
+
+  // Get user initials for avatar
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Get dashboard path based on role
+  const getDashboardPath = () => {
+    if (!user) return '/dashboard';
+    if (user.role === 'trainer') return '/trainer/overview';
+    if (user.role === 'admin') return '/admin/overview';
+    return '/dashboard';
+  };
 
   // Smooth scroll function
   const smoothScrollTo = (elementRef) => {
@@ -148,7 +256,6 @@ export default function HomePage() {
       });
     }, observerOptions);
 
-    // Observe all sections
     const sections = document.querySelectorAll(`.${styles.animateOnScroll}`);
     sections.forEach((section) => observer.observe(section));
 
@@ -156,6 +263,8 @@ export default function HomePage() {
       sections.forEach((section) => observer.unobserve(section));
     };
   }, []);
+
+  const navigationItems = user ? navigationByRole[user.role] || [] : [];
 
   return (
     <div className={styles.page}>
@@ -169,7 +278,7 @@ export default function HomePage() {
             Fit<span className={styles.accent}>Core</span>
           </span>
         </Link>
-
+        
         <nav className={styles.navLinks}>
           <a 
             href="#features" 
@@ -196,10 +305,79 @@ export default function HomePage() {
             Testimonials
           </a>
         </nav>
-
+        
         <div className={styles.navActions}>
-          <Link to="/sign-in" className={styles.signIn}>Sign in</Link>
-          <Link to="/sign-up" className={styles.primaryBtn}>Join now</Link>
+          {!user ? (
+            <>
+              <Link to="/sign-in" className={styles.signIn}>
+                Sign in
+              </Link>
+              <Link to="/sign-up" className={styles.primaryBtn}>
+                Join now
+              </Link>
+            </>
+          ) : (
+            <div className={styles.userMenu} ref={dropdownRef}>
+              <button 
+                className={styles.userButton}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <div className={styles.userAvatar}>
+                  {getInitials(user.name)}
+                </div>
+                <span className={styles.userName}>{user.name}</span>
+                <ChevronDown 
+                  size={16} 
+                  className={`${styles.chevron} ${isDropdownOpen ? styles.chevronOpen : ''}`} 
+                />
+              </button>
+              
+              {isDropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.dropdownHeader}>
+                    <div className={styles.dropdownAvatar}>
+                      {getInitials(user.name)}
+                    </div>
+                    <div className={styles.dropdownUserInfo}>
+                      <span className={styles.dropdownUserName}>{user.name}</span>
+                      <span className={styles.dropdownUserRole}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        {user.plan && ` · ${user.plan}`}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.dropdownDivider} />
+                  
+                  <nav className={styles.dropdownNav}>
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.path}
+                          className={styles.dropdownItem}
+                          onClick={() => handleNavigation(item.path)}
+                        >
+                          <Icon size={16} className={styles.dropdownIcon} />
+                          <span>{item.name}</span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                  
+                  <div className={styles.dropdownDivider} />
+                  
+                  <button 
+                    className={`${styles.dropdownItem} ${styles.logoutItem}`}
+                    onClick={handleSignOut}
+                  >
+                    <LogOut size={16} className={styles.dropdownIcon} />
+                    <span>Sign out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -210,32 +388,39 @@ export default function HomePage() {
             <Star size={14} fill="currentColor" />
             Rated 4.9 by 350+ members
           </span>
-
           <h1 className={styles.heroTitle}>
             Train with intent.
             <br />
             <span className={styles.accent}>Track every rep.</span>
           </h1>
-
           <p className={styles.heroDescription}>
             FitCore is the complete gym platform — memberships, coaching, class
             booking, attendance and performance analytics for members, trainers
             and administrators.
           </p>
-
           <div className={styles.heroActions}>
-            <Link to="/sign-up" className={styles.primaryBtnLg}>
-              Join now <ArrowRight size={18} />
-            </Link>
-            <a 
-              href="#plans" 
-              className={styles.secondaryBtnLg}
-              onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
-            >
-              Explore plans
-            </a>
+            {!user ? (
+              <>
+                <Link to="/sign-up" className={styles.primaryBtnLg}>
+                  Join now <ArrowRight size={18} />
+                </Link>
+                <a 
+                  href="#plans" 
+                  className={styles.secondaryBtnLg}
+                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
+                >
+                  Explore plans
+                </a>
+              </>
+            ) : (
+              <button 
+                className={styles.primaryBtnLg}
+                onClick={() => handleNavigation(getDashboardPath())}
+              >
+                Go to Dashboard <ArrowRight size={18} />
+              </button>
+            )}
           </div>
-
           <div className={styles.statsRow}>
             <div className={styles.stat}>
               <span className={styles.statNumber}>351</span>
@@ -251,7 +436,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
         <div className={styles.heroVisual}>
           <div className={styles.heroImage}>
             <img src={heroImage} alt="Member training with a barbell" />
@@ -276,7 +460,6 @@ export default function HomePage() {
           <h2>One platform for the whole gym floor</h2>
           <p>Everything a modern gym runs on, designed for members, trainers and administrators alike.</p>
         </div>
-
         <div className={styles.featuresGrid}>
           {features.map(({ icon: Icon, title, description }, index) => (
             <div 
@@ -304,7 +487,6 @@ export default function HomePage() {
           <h2>Membership plans</h2>
           <p>Transparent pricing. Cancel or upgrade any time from your dashboard.</p>
         </div>
-
         <div className={styles.plansGrid}>
           {plans.map((plan, index) => (
             <div
@@ -313,26 +495,29 @@ export default function HomePage() {
               style={{ animationDelay: `${index * 0.15}s` }}
             >
               {plan.featured && <span className={styles.popularBadge}>Most popular</span>}
-
               <h3 className={styles.planName}>{plan.name}</h3>
               <p className={styles.planDescription}>{plan.description}</p>
-
               <p className={styles.planPrice}>
                 ${plan.price}
                 <span className={styles.planPeriod}>/mo</span>
               </p>
-
               <ul className={styles.planFeatures}>
                 {plan.features.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-
               <button
                 type="button"
                 className={plan.featured ? styles.primaryBtn : styles.secondaryBtn}
+                onClick={() => {
+                  if (user) {
+                    handleNavigation('/membership');
+                  } else {
+                    navigate('/sign-in');
+                  }
+                }}
               >
-                Choose plan
+                {user ? 'Choose plan' : 'Join now'}
               </button>
             </div>
           ))}
@@ -349,7 +534,6 @@ export default function HomePage() {
           <h2>Train with people who show up for you</h2>
           <p>Certified coaches across strength, mobility, and conditioning — matched to your goals.</p>
         </div>
-
         <div className={styles.trainersGrid}>
           {trainers.map((trainer, index) => (
             <div 
@@ -389,7 +573,6 @@ export default function HomePage() {
           <h2>What members are saying</h2>
           <p>Real feedback from people training on FitCore every week.</p>
         </div>
-
         <div className={styles.testimonialsGrid}>
           {testimonials.map((testimonial, index) => (
             <div 
@@ -421,16 +604,27 @@ export default function HomePage() {
           <h2>Ready to train with intent?</h2>
           <p>Create your account and get matched with a plan and trainer in minutes.</p>
           <div className={styles.heroActions}>
-            <Link to="/sign-up" className={styles.primaryBtnLg}>
-              Join now <ArrowRight size={18} />
-            </Link>
-            <a 
-              href="#plans" 
-              className={styles.secondaryBtnLg}
-              onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
-            >
-              Explore plans
-            </a>
+            {!user ? (
+              <>
+                <Link to="/sign-up" className={styles.primaryBtnLg}>
+                  Join now <ArrowRight size={18} />
+                </Link>
+                <a 
+                  href="#plans" 
+                  className={styles.secondaryBtnLg}
+                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
+                >
+                  Explore plans
+                </a>
+              </>
+            ) : (
+              <button 
+                className={styles.primaryBtnLg}
+                onClick={() => handleNavigation(getDashboardPath())}
+              >
+                Go to Dashboard <ArrowRight size={18} />
+              </button>
+            )}
           </div>
         </div>
       </section>
