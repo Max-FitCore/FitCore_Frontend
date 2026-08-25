@@ -289,7 +289,16 @@ const WorkoutPlans = () => {
   };
 
   const handleCloseTimer = () => {
-    setShowConfirmModal(true);
+    if (activeWorkout) {
+      const allCompleted = activeWorkout.exercises.every(ex => ex.completed);
+      if (allCompleted) {
+        // All exercises are completed - complete the workout
+        handleCompleteWorkout();
+      } else {
+        // Not all exercises completed - show confirmation
+        setShowConfirmModal(true);
+      }
+    }
   };
 
   const handleConfirmClose = () => {
@@ -368,8 +377,8 @@ const WorkoutPlans = () => {
         trainer: planToRemove.trainer,
         duration: planToRemove.duration,
         sessionsPerWeek: planToRemove.schedule ? planToRemove.schedule.length : 3,
-        members: Math.floor(Math.random() * 50) + 20, // Random member count
-        rating: (Math.random() * 0.5 + 4.5).toFixed(1), // Random rating between 4.5-5.0
+        members: Math.floor(Math.random() * 50) + 20,
+        rating: (Math.random() * 0.5 + 4.5).toFixed(1),
         image: planToRemove.image,
         description: `${planToRemove.type} training program designed by ${planToRemove.trainer}.`
       };
