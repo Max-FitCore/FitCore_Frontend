@@ -4,12 +4,6 @@ import {
   Plus,
   Trash2,
   ChevronDown,
-  AlertCircle,
-  Dumbbell,
-  Clock,
-  Users,
-  Target,
-  Calendar
 } from 'lucide-react';
 import styles from './CreatePlanModal.module.css';
 
@@ -23,12 +17,10 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     sessions: 12,
     sessionsPerWeek: 3,
     description: '',
-    schedule: [],
     days: [],
     image: '💪',
   });
 
-  const [scheduleInput, setScheduleInput] = useState('');
   const [dayInput, setDayInput] = useState({ day: '', focus: '', exercises: '' });
   const [errors, setErrors] = useState({});
 
@@ -41,32 +33,6 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  // Schedule handlers
-  const handleAddScheduleDay = () => {
-    if (!scheduleInput.trim()) return;
-    if (!formData.schedule.includes(scheduleInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        schedule: [...prev.schedule, scheduleInput.trim()]
-      }));
-    }
-    setScheduleInput('');
-  };
-
-  const handleRemoveScheduleDay = (day) => {
-    setFormData(prev => ({
-      ...prev,
-      schedule: prev.schedule.filter(d => d !== day)
-    }));
-  };
-
-  const handleScheduleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddScheduleDay();
     }
   };
 
@@ -127,6 +93,8 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
         ...formData,
         difficulty: formData.level,
         progress: 0,
+        // Generate schedule from days
+        schedule: formData.days.map(day => day.day),
       };
       onCreatePlan(planData);
       onClose();
@@ -145,11 +113,9 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
       sessions: 12,
       sessionsPerWeek: 3,
       description: '',
-      schedule: [],
       days: [],
       image: '💪',
     });
-    setScheduleInput('');
     setDayInput({ day: '', focus: '', exercises: '' });
     setErrors({});
   };
@@ -290,44 +256,6 @@ const CreatePlanModal = ({ isOpen, onClose, onCreatePlan }) => {
               />
               {errors.sessionsPerWeek && <span className={styles.errorMessage}>{errors.sessionsPerWeek}</span>}
             </div>
-          </div>
-
-          {/* Schedule */}
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Schedule Days</label>
-            <div className={styles.scheduleInput}>
-              <input
-                type="text"
-                placeholder="e.g., Mon, Wed, Fri"
-                value={scheduleInput}
-                onChange={(e) => setScheduleInput(e.target.value)}
-                onKeyDown={handleScheduleKeyDown}
-                className={styles.formInput}
-              />
-              <button
-                type="button"
-                onClick={handleAddScheduleDay}
-                className={styles.addScheduleBtn}
-              >
-                <Plus size={18} />
-              </button>
-            </div>
-            {formData.schedule.length > 0 && (
-              <div className={styles.scheduleTags}>
-                {formData.schedule.map((day) => (
-                  <span key={day} className={styles.scheduleTag}>
-                    {day}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveScheduleDay(day)}
-                      className={styles.removeSchedule}
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Description */}
