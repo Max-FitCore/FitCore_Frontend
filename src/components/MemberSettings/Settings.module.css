@@ -19,6 +19,7 @@
   --blue-soft: rgba(59, 130, 246, 0.15);
   --purple: #8b5cf6;
   --purple-soft: rgba(139, 92, 246, 0.15);
+  padding: 20px 5px 10px;
 }
 
 /* ===== Page Header ===== */

@@ -17,6 +17,7 @@
   --error-red-soft: rgba(239, 68, 68, 0.15);
   --blue: #3b82f6;
   --blue-soft: rgba(59, 130, 246, 0.15);
+  padding: 20px 5px 10px;
 }
 
 /* ===== Page Header ===== */
