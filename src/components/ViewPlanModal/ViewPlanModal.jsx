@@ -67,34 +67,13 @@ const ViewPlanModal = ({ isOpen, onClose, plan, onEdit }) => {
             </div>
           </div>
 
-          {/* Schedule */}
-          {plan.schedule && plan.schedule.length > 0 && (
-            <div className={styles.scheduleSection}>
-              <h4 className={styles.sectionTitle}>Schedule</h4>
-              <div className={styles.scheduleTags}>
-                {plan.schedule.map((day, index) => (
-                  <span key={index} className={styles.scheduleTag}>{day}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Exercises */}
-          {plan.exercises && plan.exercises.length > 0 && (
-            <div className={styles.exercisesSection}>
-              <h4 className={styles.sectionTitle}>Exercises</h4>
-              <div className={styles.exercisesList}>
-                {plan.exercises.map((exercise, index) => (
-                  <div key={index} className={styles.exerciseItem}>
-                    <span className={styles.exerciseIndex}>{index + 1}</span>
-                    <div className={styles.exerciseInfo}>
-                      <span className={styles.exerciseName}>{exercise.name}</span>
-                      <span className={styles.exerciseDetails}>
-                        {exercise.sets} sets × {exercise.reps} reps · {exercise.weight}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+          {/* Trainer */}
+          {plan.trainer && (
+            <div className={styles.trainerSection}>
+              <div className={styles.trainerInfo}>
+                <Users size={18} className={styles.trainerIcon} />
+                <span className={styles.trainerLabel}>Trainer:</span>
+                <span className={styles.trainerName}>{plan.trainer}</span>
               </div>
             </div>
           )}

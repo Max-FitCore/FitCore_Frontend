@@ -424,3 +424,34 @@
     padding: 0.5rem 0.75rem;
   }
 }
+
+/* ===== Trainer Section ===== */
+.trainerSection {
+  margin-bottom: 1.5rem;
+}
+
+.trainerInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.trainerIcon {
+  color: var(--accent-lime);
+  flex-shrink: 0;
+}
+
+.trainerLabel {
+  font-size: 0.813rem;
+  color: var(--text-muted);
+}
+
+.trainerName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
