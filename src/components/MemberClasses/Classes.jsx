@@ -1,3 +1,4 @@
+// Classes.jsx
 import React, { useState } from 'react';
 import {
   Calendar,
@@ -33,23 +34,22 @@ import {
   Eye
 } from 'lucide-react';
 import styles from './Classes.module.css';
-import CreateClassModal from '../CreateClassModal/CreateClassModal';
 
 const Classes = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState('booked');
   const [viewMode, setViewMode] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState(null);
   const [showClassDetails, setShowClassDetails] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showUnbookModal, setShowUnbookModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Upcoming classes
-  const [upcomingClasses, setUpcomingClasses] = useState([
+  // All classes
+  const [allClasses, setAllClasses] = useState([
     {
       id: 1,
       name: 'Morning HIIT Blast',
@@ -176,10 +176,6 @@ const Classes = () => {
       rating: 4.8,
       reviews: 19
     },
-  ]);
-
-  // Available classes for booking
-  const [availableClasses, setAvailableClasses] = useState([
     {
       id: 7,
       name: 'Functional Fitness',
@@ -247,7 +243,7 @@ const Classes = () => {
 
   // Class statistics
   const classStats = {
-    totalClasses: upcomingClasses.length + availableClasses.length,
+    totalClasses: allClasses.length,
     classesThisMonth: 12,
     attended: 9,
     attendanceRate: 75,
@@ -302,6 +298,11 @@ const Classes = () => {
     setShowBookingModal(true);
   };
 
+  const handleUnbookClass = (classItem) => {
+    setSelectedClass(classItem);
+    setShowUnbookModal(true);
+  };
+
   const handleJoinWaitlist = (classItem) => {
     setSelectedClass(classItem);
     setShowWaitlistModal(true);
@@ -314,15 +315,9 @@ const Classes = () => {
 
   const confirmBooking = () => {
     console.log(`Booking class: ${selectedClass?.name}`);
-    // Update the class status
     if (selectedClass) {
-      const updatedClass = { ...selectedClass, isBooked: true };
-      // Update in upcoming classes
-      setUpcomingClasses(prev => 
-        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
-      );
-      // Update in available classes
-      setAvailableClasses(prev => 
+      const updatedClass = { ...selectedClass, isBooked: true, booked: selectedClass.booked + 1 };
+      setAllClasses(prev => 
         prev.map(c => c.id === selectedClass.id ? updatedClass : c)
       );
     }
@@ -330,43 +325,28 @@ const Classes = () => {
     showToast(`Successfully booked ${selectedClass?.name}!`);
   };
 
+  const confirmUnbook = () => {
+    console.log(`Unbooking class: ${selectedClass?.name}`);
+    if (selectedClass) {
+      const updatedClass = { ...selectedClass, isBooked: false, booked: Math.max(0, selectedClass.booked - 1) };
+      setAllClasses(prev => 
+        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
+      );
+    }
+    setShowUnbookModal(false);
+    showToast(`Successfully unbooked ${selectedClass?.name}.`);
+  };
+
   const confirmWaitlist = () => {
     console.log(`Joining waitlist for: ${selectedClass?.name}`);
     if (selectedClass) {
       const updatedClass = { ...selectedClass, isWaitlisted: true, waitlist: selectedClass.waitlist + 1 };
-      setUpcomingClasses(prev => 
-        prev.map(c => c.id === selectedClass.id ? updatedClass : c)
-      );
-      setAvailableClasses(prev => 
+      setAllClasses(prev => 
         prev.map(c => c.id === selectedClass.id ? updatedClass : c)
       );
     }
     setShowWaitlistModal(false);
     showToast(`Added to waitlist for ${selectedClass?.name}!`);
-  };
-
-  const handleCreateClass = (newClassData) => {
-    // Generate a unique ID
-    const newId = Math.max(
-      ...upcomingClasses.map(c => c.id),
-      ...availableClasses.map(c => c.id),
-      0
-    ) + 1;
-
-    const newClass = {
-      ...newClassData,
-      id: newId,
-      booked: 0,
-      waitlist: 0,
-      isBooked: false,
-      isWaitlisted: false,
-      rating: 0,
-      reviews: 0
-    };
-
-    // Add to upcoming classes by default
-    setUpcomingClasses(prev => [newClass, ...prev]);
-    showToast(`Class "${newClass.name}" created successfully!`);
   };
 
   const showToast = (message) => {
@@ -375,11 +355,30 @@ const Classes = () => {
     setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
-  const filteredClasses = [...upcomingClasses, ...availableClasses].filter(classItem =>
-    classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    classItem.instructor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    classItem.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter classes based on active tab and search query
+  const getFilteredClasses = () => {
+    let filtered = allClasses;
+    
+    if (activeTab === 'booked') {
+      filtered = filtered.filter(c => c.isBooked);
+    } else if (activeTab === 'available') {
+      filtered = filtered.filter(c => !c.isBooked && !c.isWaitlisted);
+    } else if (activeTab === 'waitlist') {
+      filtered = filtered.filter(c => c.isWaitlisted);
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(classItem =>
+        classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        classItem.instructor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        classItem.type.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  };
+
+  const filteredClasses = getFilteredClasses();
 
   return (
     <div className={styles.classes}>
@@ -401,13 +400,6 @@ const Classes = () => {
           <button className={styles.btnSecondary}>
             <Download size={18} />
             Export Schedule
-          </button>
-          <button 
-            className={styles.btnPrimary}
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus size={18} />
-            Create Class
           </button>
         </div>
       </div>
@@ -464,11 +456,11 @@ const Classes = () => {
       {/* Tabs */}
       <div className={styles.tabs}>
         <button
-          className={`${styles.tab} ${activeTab === 'upcoming' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('upcoming')}
+          className={`${styles.tab} ${activeTab === 'booked' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('booked')}
         >
-          <CalendarIcon size={16} />
-          Upcoming
+          <CheckCircle size={16} />
+          Booked
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'available' ? styles.tabActive : ''}`}
@@ -478,25 +470,25 @@ const Classes = () => {
           Available
         </button>
         <button
+          className={`${styles.tab} ${activeTab === 'waitlist' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('waitlist')}
+        >
+          <ClockIcon size={16} />
+          Waitlist
+        </button>
+        <button
           className={`${styles.tab} ${activeTab === 'history' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('history')}
         >
           <ClockIcon size={16} />
           History
         </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'favorites' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('favorites')}
-        >
-          <Star size={16} />
-          Favorites
-        </button>
       </div>
 
       {/* Tab Content */}
       <div className={styles.tabContent}>
-        {/* Upcoming & Available Classes */}
-        {(activeTab === 'upcoming' || activeTab === 'available') && (
+        {/* Booked, Available & Waitlist Classes */}
+        {(activeTab === 'booked' || activeTab === 'available' || activeTab === 'waitlist') && (
           <div className={styles.classesTab}>
             <div className={styles.toolbar}>
               <div className={styles.searchWrapper}>
@@ -533,10 +525,18 @@ const Classes = () => {
 
             {filteredClasses.length === 0 ? (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>🏫</div>
-                <h3 className={styles.emptyTitle}>No classes found</h3>
+                <div className={styles.emptyIcon}>
+                  {activeTab === 'booked' ? '📅' : activeTab === 'available' ? '🏫' : '📋'}
+                </div>
+                <h3 className={styles.emptyTitle}>
+                  {activeTab === 'booked' && 'No booked classes'}
+                  {activeTab === 'available' && 'No available classes'}
+                  {activeTab === 'waitlist' && 'No waitlisted classes'}
+                </h3>
                 <p className={styles.emptyDescription}>
-                  Try adjusting your search or filter to find available classes.
+                  {activeTab === 'booked' && 'You haven\'t booked any classes yet. Browse available classes to get started.'}
+                  {activeTab === 'available' && 'All classes are currently booked. Check back later for new openings.'}
+                  {activeTab === 'waitlist' && 'You\'re not on any waitlists yet.'}
                 </p>
               </div>
             ) : (
@@ -608,11 +608,11 @@ const Classes = () => {
                       <div className={styles.classCardActions}>
                         {classItem.isBooked ? (
                           <button 
-                            className={styles.btnBooked}
-                            onClick={() => handleViewClass(classItem)}
+                            className={styles.btnUnbook}
+                            onClick={() => handleUnbookClass(classItem)}
                           >
-                            <CheckCircle size={16} />
-                            Booked
+                            <X size={16} />
+                            Unbook
                           </button>
                         ) : classItem.isWaitlisted ? (
                           <button 
@@ -664,7 +664,7 @@ const Classes = () => {
                 <span>Duration</span>
                 <span>Status</span>
               </div>
-              {upcomingClasses.slice(0, 3).map((classItem) => (
+              {allClasses.filter(c => c.isBooked).slice(0, 3).map((classItem) => (
                 <div key={classItem.id} className={styles.historyItem}>
                   <div className={styles.historyClass}>
                     <span className={styles.historyEmoji}>{classItem.image}</span>
@@ -683,38 +683,6 @@ const Classes = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Favorites Tab */}
-        {activeTab === 'favorites' && (
-          <div className={styles.favoritesTab}>
-            <div className={styles.favoritesGrid}>
-              {upcomingClasses
-                .filter(c => c.rating >= 4.8)
-                .slice(0, 3)
-                .map((classItem) => (
-                  <div key={classItem.id} className={styles.favoriteCard}>
-                    <div className={styles.favoriteHeader}>
-                      <span className={styles.favoriteEmoji}>{classItem.image}</span>
-                      <span className={styles.favoriteStar}>⭐</span>
-                    </div>
-                    <h3 className={styles.favoriteName}>{classItem.name}</h3>
-                    <p className={styles.favoriteInstructor}>with {classItem.instructor}</p>
-                    <div className={styles.favoriteMeta}>
-                      <span>{classItem.type}</span>
-                      <span>•</span>
-                      <span>{classItem.duration} min</span>
-                      <span>•</span>
-                      <span>{classItem.rating} ★</span>
-                    </div>
-                    <button className={styles.btnPrimarySmall}>
-                      Book Again
-                      <ArrowRight size={14} />
-                    </button>
-                  </div>
-                ))}
             </div>
           </div>
         )}
@@ -772,6 +740,69 @@ const Classes = () => {
                 onClick={confirmBooking}
               >
                 Confirm Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unbook Modal */}
+      {showUnbookModal && selectedClass && (
+        <div className={styles.modalOverlay} onClick={() => setShowUnbookModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2 className={styles.modalTitle}>Unbook Class</h2>
+                <div className={styles.modalSubtitle}>{selectedClass.name}</div>
+              </div>
+              <button 
+                className={styles.modalClose}
+                onClick={() => setShowUnbookModal(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.unbookInfo}>
+                <div className={styles.unbookIcon}>
+                  <AlertCircle size={32} />
+                </div>
+                <p className={styles.unbookDescription}>
+                  Are you sure you want to unbook <strong>{selectedClass.name}</strong>? 
+                  Your spot will be released to others.
+                </p>
+                <div className={styles.bookingSummary}>
+                  <div className={styles.bookingItem}>
+                    <Calendar size={16} />
+                    <span>{formatDate(selectedClass.date)}</span>
+                  </div>
+                  <div className={styles.bookingItem}>
+                    <Clock size={16} />
+                    <span>{selectedClass.time}</span>
+                  </div>
+                  <div className={styles.bookingItem}>
+                    <MapPin size={16} />
+                    <span>{selectedClass.location}</span>
+                  </div>
+                  <div className={styles.bookingItem}>
+                    <User size={16} />
+                    <span>{selectedClass.instructor}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.btnSecondary}
+                onClick={() => setShowUnbookModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.btnDanger}
+                onClick={confirmUnbook}
+              >
+                Confirm Unbook
               </button>
             </div>
           </div>
@@ -912,7 +943,17 @@ const Classes = () => {
               >
                 Close
               </button>
-              {!selectedClass.isBooked && !selectedClass.isWaitlisted && selectedClass.booked < selectedClass.capacity && (
+              {selectedClass.isBooked ? (
+                <button 
+                  className={styles.btnDanger}
+                  onClick={() => {
+                    setShowClassDetails(false);
+                    handleUnbookClass(selectedClass);
+                  }}
+                >
+                  Unbook
+                </button>
+              ) : !selectedClass.isWaitlisted && selectedClass.booked < selectedClass.capacity && (
                 <button 
                   className={styles.btnPrimary}
                   onClick={() => {
@@ -928,13 +969,6 @@ const Classes = () => {
           </div>
         </div>
       )}
-
-      {/* Create Class Modal */}
-      <CreateClassModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCreateClass={handleCreateClass}
-      />
     </div>
   );
 };
