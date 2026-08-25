@@ -1581,3 +1581,26 @@
     justify-content: center;
   }
 }
+
+/* ===== Remove Button ===== */
+.btnRemove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error-red);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btnRemove:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--error-red);
+  transform: translateY(-1px);
+}

@@ -18,7 +18,8 @@ import {
   Pause,
   Square,
   Timer,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 import styles from './WorkoutPlans.module.css';
 
@@ -37,6 +38,8 @@ const WorkoutPlans = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [workoutCompleted, setWorkoutCompleted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
+  const [planToRemove, setPlanToRemove] = useState(null);
 
   // Current user's workout plans
   const [myPlans, setMyPlans] = useState([
@@ -180,9 +183,6 @@ const WorkoutPlans = () => {
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, isPaused, workoutCompleted]);
-
-  // Check if all exercises are completed - but don't auto-complete anymore
-  // We'll let the user manually end the workout
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -349,6 +349,43 @@ const WorkoutPlans = () => {
     }
   };
 
+  const handleRemovePlan = (plan) => {
+    setPlanToRemove(plan);
+    setShowRemoveConfirmModal(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (planToRemove) {
+      // Remove from my plans
+      setMyPlans(prev => prev.filter(p => p.id !== planToRemove.id));
+      
+      // Add to available plans (with the necessary fields for available plans)
+      const availablePlan = {
+        id: planToRemove.id,
+        name: planToRemove.name,
+        type: planToRemove.type,
+        level: planToRemove.level,
+        trainer: planToRemove.trainer,
+        duration: planToRemove.duration,
+        sessionsPerWeek: planToRemove.schedule ? planToRemove.schedule.length : 3,
+        members: Math.floor(Math.random() * 50) + 20, // Random member count
+        rating: (Math.random() * 0.5 + 4.5).toFixed(1), // Random rating between 4.5-5.0
+        image: planToRemove.image,
+        description: `${planToRemove.type} training program designed by ${planToRemove.trainer}.`
+      };
+      
+      setAvailablePlans(prev => [availablePlan, ...prev]);
+      setShowRemoveConfirmModal(false);
+      setPlanToRemove(null);
+      showToast(`Removed "${planToRemove.name}" from your plans`);
+    }
+  };
+
+  const handleCancelRemove = () => {
+    setShowRemoveConfirmModal(false);
+    setPlanToRemove(null);
+  };
+
   const showToast = (message) => {
     setToastMessage(message);
     setShowSuccessToast(true);
@@ -388,7 +425,7 @@ const WorkoutPlans = () => {
         </div>
       )}
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - End Workout */}
       {showConfirmModal && (
         <div className={styles.modalOverlay} onClick={handleCancelClose}>
           <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
@@ -411,6 +448,36 @@ const WorkoutPlans = () => {
                 onClick={handleConfirmClose}
               >
                 End Workout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal - Remove Plan */}
+      {showRemoveConfirmModal && planToRemove && (
+        <div className={styles.modalOverlay} onClick={handleCancelRemove}>
+          <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmModalIcon}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className={styles.confirmModalTitle}>Remove Plan?</h3>
+            <p className={styles.confirmModalDescription}>
+              Are you sure you want to remove <strong>"{planToRemove.name}"</strong> from your plans? 
+              It will be moved back to available plans.
+            </p>
+            <div className={styles.confirmModalActions}>
+              <button 
+                className={styles.btnSecondary}
+                onClick={handleCancelRemove}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.btnDanger}
+                onClick={handleConfirmRemove}
+              >
+                Remove Plan
               </button>
             </div>
           </div>
@@ -679,11 +746,13 @@ const WorkoutPlans = () => {
                         View Details
                         <ChevronRight size={16} />
                       </button>
-                      {plan.status === 'active' && (
-                        <button className={styles.btnIcon}>
-                          <MoreVertical size={18} />
-                        </button>
-                      )}
+                      <button 
+                        className={styles.btnRemove}
+                        onClick={() => handleRemovePlan(plan)}
+                      >
+                        <Trash2 size={16} />
+                        Remove
+                      </button>
                     </div>
                   </div>
                 ))}
