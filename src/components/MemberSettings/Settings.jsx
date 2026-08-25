@@ -51,8 +51,7 @@ const Settings = () => {
 
   // Profile data
   const [profile, setProfile] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
+    fullName: 'John Doe',
     email: 'john.doe@example.com',
     phone: '+1 (555) 123-4567',
     location: 'New York, NY',
@@ -168,7 +167,7 @@ const Settings = () => {
             </button>
           </div>
           <div>
-            <h2 className={styles.profileName}>{profile.firstName} {profile.lastName}</h2>
+            <h2 className={styles.profileName}>{profile.fullName}</h2>
             <p className={styles.profileMeta}>{profile.membershipType} Member • Joined {profile.joinDate}</p>
           </div>
         </div>
@@ -191,27 +190,15 @@ const Settings = () => {
       </div>
 
       <div className={styles.profileForm}>
-        <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>First Name</label>
+            <label className={styles.formLabel}>Full Name</label>
             <input 
               type="text" 
-              value={profile.firstName}
-              onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+              value={profile.fullName}
+              onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
               className={styles.formInput}
               disabled={!isEditing}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Last Name</label>
-            <input 
-              type="text" 
-              value={profile.lastName}
-              onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-              className={styles.formInput}
-              disabled={!isEditing}
-            />
-          </div>
         </div>
 
         <div className={styles.formRow}>
