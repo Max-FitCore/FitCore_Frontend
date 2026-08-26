@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Star, ArrowRight, UserCheck, Dumbbell, BarChart3, CalendarCheck, QrCode, CreditCard, User, LogOut, ChevronDown, LayoutDashboard, Users, Calendar, Settings, CreditCard as CreditCardIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../../assets/hero-gym.jpg';
+import co1 from '../../assets/Co1.jpg';
+import co2 from '../../assets/Co2.jpg';
+import co3 from '../../assets/Co3.jpg';
 import styles from './Home.module.css';
 
 const trainers = [
@@ -10,21 +13,21 @@ const trainers = [
     specialty: 'Strength & Conditioning',
     experience: '9 yrs experience',
     rating: '4.9',
-    image: '/images/trainer-marcus.jpg',
+    image: co1,
   },
   {
     name: 'Elena Cho',
     specialty: 'Mobility & Recovery',
     experience: '6 yrs experience',
     rating: '4.8',
-    image: '/images/trainer-elena.jpg',
+    image: co2,
   },
   {
     name: 'Jordan Blake',
     specialty: 'HIIT & Fat Loss',
     experience: '7 yrs experience',
     rating: '5.0',
-    image: '/images/trainer-jordan.jpg',
+    image: co3,
   },
 ];
 
