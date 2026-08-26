@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dumbbell,
   Timer,
@@ -9,6 +10,8 @@ import {
 import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   // Mock user data
   const user = {
     name: 'Sara',
@@ -85,6 +88,15 @@ const Dashboard = () => {
     { id: 2, name: 'Fat Loss Conditioning', percent: 25 },
   ];
 
+  // Navigation handlers
+  const handleStartWorkout = () => {
+    navigate('/workout-plans');
+  };
+
+  const handleManageBilling = () => {
+    navigate('/membership');
+  };
+
   return (
     <div className={styles.dashboard}>
       {/* Top Bar */}
@@ -95,7 +107,9 @@ const Dashboard = () => {
             Week {user.week} of {user.planLabel} — {user.statusNote}
           </p>
         </div>
-        <button className={styles.startBtn}>Start workout</button>
+        <button className={styles.startBtn} onClick={handleStartWorkout}>
+          Start workout
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -147,21 +161,19 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Membership</h3>
           <p className={styles.membershipPlan}>{membership.plan}</p>
-
           <div className={styles.membershipRow}>
             <span className={styles.membershipRenew}>{membership.renews}</span>
             <span className={styles.statusBadge}>{membership.status}</span>
           </div>
-
           <div className={styles.progressTrack}>
             <div className={styles.progressFill} style={{ width: `${membership.progress}%` }} />
           </div>
-
-          <button className={styles.manageBtn}>Manage billing</button>
+          <button className={styles.manageBtn} onClick={handleManageBilling}>
+            Manage billing
+          </button>
         </div>
       </div>
 
@@ -181,7 +193,6 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Plan progress</h3>
           <div className={styles.planList}>
