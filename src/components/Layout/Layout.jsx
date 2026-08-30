@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import styles from './Layout.module.css';
 
 // SVG Icon Components
@@ -183,11 +184,45 @@ const navConfig = {
   }
 };
 
-const Layout = ({ children, userRole = 'member', userData = {} }) => {
+// Axios instance with base configuration
+const apiClient = axios.create({
+  baseURL: 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to requests if available
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+const Layout = ({ children, userRole = 'member' }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState({
+    name: '',
+    initials: '',
+    role: '',
+    avatar: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
+    membershipPlan: null
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Default user fallback based on role
   const defaultUser = {
     member: {
       name: 'John Doe',
@@ -209,10 +244,62 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
     }
   };
 
-  const user = { ...defaultUser[userRole], ...userData };
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await apiClient.get('/profile/me');
+        
+        if (response.data.success) {
+          const userData = response.data.data;
+          
+          // Map user data to the format expected by the component
+          const userName = userData.fullName || userData.name || 'User';
+          const userInitials = userName
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+          
+          setUser({
+            name: userName,
+            initials: userInitials,
+            role: userData.role || userRole,
+            avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=A6F13B&color=05070A&size=64`,
+            email: userData.email || '',
+            phone: userData.phone || '',
+            location: userData.location || '',
+            bio: userData.bio || '',
+            membershipPlan: userData.membershipPlan || null,
+            // Store the full user data if needed
+            ...userData
+          });
+        } else {
+          // Use default user if API returns error
+          setUser(defaultUser[userRole] || defaultUser.member);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError(err.response?.data?.message || 'Failed to load profile');
+        // Use default user if API call fails
+        setUser(defaultUser[userRole] || defaultUser.member);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userRole]); // Re-fetch if userRole changes
+
+  // Get navigation items based on role
   const navItems = navConfig[userRole]?.items || navConfig.member.items;
   const roleLabel = navConfig[userRole]?.label || 'Member';
 
+  // Map routes to labels for active state
   const routeToLabel = {};
   navItems.forEach(item => {
     routeToLabel[item.path] = item.label;
@@ -226,11 +313,12 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
     e.preventDefault();
     setActiveItem(label);
     navigate(path);
-    // Close mobile menu after navigation
     setIsMobileMenuOpen(false);
   };
 
   const handleSignOut = () => {
+    // Clear token and redirect to sign in
+    localStorage.removeItem('token');
     navigate('/sign-in');
   };
 
@@ -241,6 +329,24 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  // Show loading state if fetching profile
+  if (loading) {
+    return (
+      <div className={styles.layout}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          width: '100%', 
+          height: '100vh',
+          color: '#FFFFFF'
+        }}>
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.layout}>
@@ -299,6 +405,7 @@ const Layout = ({ children, userRole = 'member', userData = {} }) => {
               href={item.path}
               className={`${styles.navItem} ${activeItem === item.label ? styles.active : ''}`}
               onClick={(e) => handleNavClick(item.label, item.path, e)}
+              data-tooltip={item.label} // For tablet tooltip
             >
               <item.icon />
               <span>{item.label}</span>
