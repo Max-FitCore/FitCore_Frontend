@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Dumbbell, ArrowRight, Mail, CheckCircle, AlertCircle, Lock, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from './ForgotPassword.module.css';
+
+const API_URL = 'http://localhost:5000/api';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ const ForgotPassword = () => {
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [otpTimer, setOtpTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [sessionId, setSessionId] = useState('');
   const inputRefs = useRef([]);
   
   // Password step
@@ -30,6 +34,7 @@ const ForgotPassword = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   // Auto-focus first OTP input on step change
   useEffect(() => {
@@ -94,10 +99,11 @@ const ForgotPassword = () => {
     }
   };
 
-  // STEP 1: Submit Email
+  // STEP 1: Submit Email - Request OTP
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setEmailError('');
+    setResetError('');
 
     // Validate email
     if (!email) {
@@ -111,15 +117,31 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
 
-    // Simulate API call to send OTP
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Mock success - in real app, check if email exists
-      setStep(2);
-      setOtpTimer(60);
-      setCanResend(false);
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      
+      if (response.data.success) {
+        setStep(2);
+        setOtpTimer(60);
+        setCanResend(false);
+        // Reset OTP inputs
+        setOtp(['', '', '', '', '', '']);
+        setOtpError('');
+      }
     } catch (err) {
-      setEmailError('Something went wrong. Please try again.');
+      if (err.response) {
+        // Server responded with error
+        if (err.response.status === 404) {
+          setEmailError('No account found with this email address');
+        } else {
+          setEmailError(err.response.data.message || 'Something went wrong. Please try again.');
+        }
+      } else if (err.request) {
+        // Request made but no response
+        setEmailError('Network error. Please check your connection.');
+      } else {
+        setEmailError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +151,8 @@ const ForgotPassword = () => {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     const otpValue = otp.join('');
+    setOtpError('');
+    setResetError('');
     
     if (otpValue.length !== 6) {
       setOtpError('Please enter all 6 digits');
@@ -137,13 +161,25 @@ const ForgotPassword = () => {
 
     setIsOtpLoading(true);
 
-    // Simulate API call to verify OTP
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      // Mock verification - in real app, verify OTP
-      setStep(3);
+      const response = await axios.post(`${API_URL}/auth/verify-reset-code`, {
+        otpCode: otpValue
+      });
+      
+      if (response.data.success) {
+        // Store session ID for password reset step
+        setSessionId(response.data.data.sessionId);
+        setStep(3);
+        setOtpError('');
+      }
     } catch (err) {
-      setOtpError('Invalid verification code. Please try again.');
+      if (err.response) {
+        setOtpError(err.response.data.message || 'Invalid verification code. Please try again.');
+      } else if (err.request) {
+        setOtpError('Network error. Please check your connection.');
+      } else {
+        setOtpError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsOtpLoading(false);
     }
@@ -154,17 +190,27 @@ const ForgotPassword = () => {
     if (!canResend) return;
     
     setIsOtpLoading(true);
+    setOtpError('');
+    
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setOtpTimer(60);
-      setCanResend(false);
-      setOtp(['', '', '', '', '', '']);
-      setOtpError('');
-      if (inputRefs.current[0]) {
-        inputRefs.current[0].focus();
+      // Resend OTP using the forgot-password endpoint again
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      
+      if (response.data.success) {
+        setOtpTimer(60);
+        setCanResend(false);
+        setOtp(['', '', '', '', '', '']);
+        setOtpError('');
+        if (inputRefs.current[0]) {
+          inputRefs.current[0].focus();
+        }
       }
     } catch (err) {
-      setOtpError('Failed to resend code. Please try again.');
+      if (err.response) {
+        setOtpError(err.response.data.message || 'Failed to resend code. Please try again.');
+      } else {
+        setOtpError('Failed to resend code. Please try again.');
+      }
     } finally {
       setIsOtpLoading(false);
     }
@@ -174,6 +220,7 @@ const ForgotPassword = () => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordError('');
+    setResetError('');
 
     // Validate password
     if (newPassword.length < 8) {
@@ -186,18 +233,53 @@ const ForgotPassword = () => {
       return;
     }
 
+    // Password strength validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+    if (!passwordRegex.test(newPassword)) {
+      setPasswordError('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
+
     setIsPasswordLoading(true);
 
-    // Simulate API call to reset password
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setIsSuccess(true);
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigate('/sign-in');
-      }, 2000);
+      const response = await axios.post(
+        `${API_URL}/auth/reset-password`,
+        {
+          newPassword,
+          confirmPassword
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${sessionId}`
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        setIsSuccess(true);
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          navigate('/sign-in');
+        }, 2000);
+      }
     } catch (err) {
-      setPasswordError('Something went wrong. Please try again.');
+      if (err.response) {
+        if (err.response.status === 401) {
+          // Session expired - go back to OTP step
+          setResetError('Session expired. Please verify your code again.');
+          setTimeout(() => {
+            setStep(2);
+            setSessionId('');
+          }, 2000);
+        } else {
+          setPasswordError(err.response.data.message || 'Something went wrong. Please try again.');
+        }
+      } else if (err.request) {
+        setPasswordError('Network error. Please check your connection.');
+      } else {
+        setPasswordError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsPasswordLoading(false);
     }
@@ -354,7 +436,10 @@ const ForgotPassword = () => {
       <div className={styles.forgotFooter}>
         <button
           type="button"
-          onClick={() => setStep(1)}
+          onClick={() => {
+            setStep(1);
+            setOtpError('');
+          }}
           className={styles.backBtn}
         >
           ← Back to email
@@ -396,6 +481,12 @@ const ForgotPassword = () => {
           </p>
         </div>
 
+        {resetError && (
+          <div className={styles.errorMessage} style={{ textAlign: 'center', marginBottom: '16px' }}>
+            {resetError}
+          </div>
+        )}
+
         <form onSubmit={handlePasswordSubmit} className={styles.passwordForm}>
           {/* New Password */}
           <div className={styles.formGroup}>
@@ -412,6 +503,7 @@ const ForgotPassword = () => {
                 onChange={(e) => {
                   setNewPassword(e.target.value);
                   setPasswordError('');
+                  setResetError('');
                 }}
                 className={`${styles.formInput} ${passwordError ? styles.inputError : ''}`}
                 required
@@ -426,7 +518,7 @@ const ForgotPassword = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <p className={styles.passwordHint}>Must be at least 8 characters</p>
+            <p className={styles.passwordHint}>Must be at least 8 characters with uppercase, lowercase, and a number</p>
           </div>
 
           {/* Confirm Password */}
@@ -444,6 +536,7 @@ const ForgotPassword = () => {
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
                   setPasswordError('');
+                  setResetError('');
                 }}
                 className={`${styles.formInput} ${passwordError ? styles.inputError : ''}`}
                 required
@@ -484,7 +577,11 @@ const ForgotPassword = () => {
         <div className={styles.forgotFooter}>
           <button
             type="button"
-            onClick={() => setStep(2)}
+            onClick={() => {
+              setStep(2);
+              setPasswordError('');
+              setResetError('');
+            }}
             className={styles.backBtn}
           >
             ← Back to verification
