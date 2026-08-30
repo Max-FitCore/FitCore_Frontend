@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   User,
   Bell,
@@ -42,23 +43,69 @@ import {
 } from 'lucide-react';
 import styles from './Settings.module.css';
 
+// Create axios instance with base URL
+const API_URL = 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle response errors - Modified to not redirect on 401 for specific endpoints
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Check if it's a 401 error from specific endpoints
+    const isDeleteEndpoint = error.config?.url?.includes('/profile/delete-permanent');
+    const isDeactivateEndpoint = error.config?.url?.includes('/profile/deactivate');
+    const isChangePasswordEndpoint = error.config?.url?.includes('/profile/change-password');
+    
+    // Only redirect to sign-in if it's not a delete, deactivate, or change password endpoint with wrong password
+    if (error.response?.status === 401 && !isDeleteEndpoint && !isDeactivateEndpoint && !isChangePasswordEndpoint) {
+      localStorage.removeItem('token');
+      window.location.href = '/sign-in';
+    }
+    return Promise.reject(error);
+  }
+);
+
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Settings updated successfully!');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Profile data
   const [profile, setProfile] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    location: 'New York, NY',
-    bio: 'Fitness enthusiast and gym regular. Passionate about strength training and functional fitness.',
-    joinDate: 'January 2025',
-    membershipType: 'Premium',
-    avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=A6F13B&color=05070A&size=128'
+    fullName: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
+    joinDate: '',
+    membershipType: '',
+    avatar: ''
   });
 
   // Preferences
@@ -112,6 +159,15 @@ const Settings = () => {
     confirmPassword: ''
   });
 
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    checked: false,
+    password: ''
+  });
+
+  const [deactivateConfirm, setDeactivateConfirm] = useState({
+    checked: false
+  });
+
   const sections = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'preferences', label: 'Preferences', icon: Palette },
@@ -120,22 +176,198 @@ const Settings = () => {
     { id: 'account', label: 'Account', icon: User }
   ];
 
-  const handleProfileUpdate = () => {
-    setIsEditing(false);
+  // Fetch profile data on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await api.get('/profile/me');
+      const userData = response.data.data;
+      
+      setProfile({
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        location: userData.location || '',
+        bio: userData.bio || '',
+        joinDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '',
+        membershipType: userData.membershipType || 'Premium',
+        avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || 'User')}&background=A6F13B&color=05070A&size=128`
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to load profile data';
+      setError(errorMessage);
+      showToast(errorMessage, false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showToast = (message, isSuccess = true) => {
+    setToastMessage(message);
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
-  const handlePasswordChange = () => {
-    setShowPasswordModal(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 3000);
+  const handleProfileUpdate = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await api.put('/profile/update', {
+        fullName: profile.fullName,
+        phone: profile.phone,
+        location: profile.location,
+        bio: profile.bio
+      });
+
+      if (response.data.success) {
+        setIsEditing(false);
+        showToast('Profile updated successfully!');
+        // Update profile with new data
+        const updatedUser = response.data.data;
+        setProfile(prev => ({
+          ...prev,
+          fullName: updatedUser.fullName,
+          phone: updatedUser.phone,
+          location: updatedUser.location,
+          bio: updatedUser.bio
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to update profile';
+      setError(errorMessage);
+      showToast(errorMessage, false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteAccount = () => {
-    setShowDeleteModal(false);
-    // Navigate to logout/delete
+  const handlePasswordChange = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Validate passwords
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        setError('Passwords do not match');
+        showToast('Passwords do not match', false);
+        return;
+      }
+
+      if (passwordData.newPassword.length < 6) {
+        setError('Password must be at least 6 characters');
+        showToast('Password must be at least 6 characters', false);
+        return;
+      }
+
+      const response = await api.put('/profile/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+
+      if (response.data.success) {
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        showToast('Password changed successfully!');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      // Handle 401 error specifically for wrong password
+      if (error.response?.status === 401) {
+        const errorMessage = error.response?.data?.message || 'Current password is incorrect. Please try again.';
+        setError(errorMessage);
+        showToast(errorMessage, false);
+      } else {
+        const errorMessage = error.response?.data?.message || 'Failed to change password';
+        setError(errorMessage);
+        showToast(errorMessage, false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!deleteConfirm.checked) {
+        setError('Please confirm account deletion');
+        showToast('Please confirm account deletion', false);
+        return;
+      }
+
+      if (!deleteConfirm.password) {
+        setError('Password is required to delete account');
+        showToast('Password is required to delete account', false);
+        return;
+      }
+
+      const response = await api.delete('/profile/delete-permanent', {
+        data: { password: deleteConfirm.password }
+      });
+
+      if (response.data.success) {
+        setShowDeleteModal(false);
+        // Clear local storage/auth tokens
+        localStorage.removeItem('token');
+        // Redirect to sign-in page
+        window.location.href = '/sign-in';
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      // Handle 401 error specifically for wrong password
+      if (error.response?.status === 401) {
+        const errorMessage = error.response?.data?.message || 'Invalid password. Please try again.';
+        setError(errorMessage);
+        showToast(errorMessage, false);
+      } else {
+        const errorMessage = error.response?.data?.message || 'Failed to delete account';
+        setError(errorMessage);
+        showToast(errorMessage, false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!deactivateConfirm.checked) {
+        setError('Please confirm account deactivation');
+        showToast('Please confirm account deactivation', false);
+        return;
+      }
+
+      const response = await api.delete('/profile/deactivate');
+
+      if (response.data.success) {
+        setShowDeactivateModal(false);
+        // Clear local storage/auth tokens
+        localStorage.removeItem('token');
+        // Redirect to sign-in page with message
+        window.location.href = '/sign-in?deactivated=true';
+      }
+    } catch (error) {
+      console.error('Error deactivating account:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to deactivate account';
+      setError(errorMessage);
+      showToast(errorMessage, false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNotificationToggle = (type, key) => {
@@ -146,36 +378,53 @@ const Settings = () => {
         [key]: !prev[type][key]
       }
     }));
+    // In a real app, you would save these preferences to the backend
+    // For now, we'll just update the local state
+    showToast(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} preference updated`);
   };
 
   const handlePreferenceChange = (key, value) => {
     setPreferences(prev => ({ ...prev, [key]: value }));
+    // Save preference to backend if needed
   };
 
   const handlePrivacyChange = (key) => {
     setPrivacy(prev => ({ ...prev, [key]: !prev[key] }));
+    // Save privacy setting to backend if needed
   };
 
   const renderProfileSection = () => (
     <div className={styles.sectionContent}>
+      {error && (
+        <div className={styles.errorBanner}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+      
       <div className={styles.profileHeader}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrapper}>
             <img src={profile.avatar} alt="Profile" className={styles.avatar} />
-            <button className={styles.avatarUpload}>
+            <button className={styles.avatarUpload} disabled={isLoading}>
               <Camera size={16} />
             </button>
           </div>
           <div>
-            <h2 className={styles.profileName}>{profile.fullName}</h2>
-            <p className={styles.profileMeta}>{profile.membershipType} Member • Joined {profile.joinDate}</p>
+            <h2 className={styles.profileName}>{profile.fullName || 'User'}</h2>
+            <p className={styles.profileMeta}>
+              {profile.membershipType} Member • Joined {profile.joinDate || 'Recently'}
+            </p>
           </div>
         </div>
         <button 
           className={isEditing ? styles.btnPrimary : styles.btnSecondary}
           onClick={() => isEditing ? handleProfileUpdate() : setIsEditing(true)}
+          disabled={isLoading}
         >
-          {isEditing ? (
+          {isLoading ? (
+            <span>Loading...</span>
+          ) : isEditing ? (
             <>
               <Save size={16} />
               Save Changes
@@ -190,15 +439,15 @@ const Settings = () => {
       </div>
 
       <div className={styles.profileForm}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Full Name</label>
-            <input 
-              type="text" 
-              value={profile.fullName}
-              onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
-              className={styles.formInput}
-              disabled={!isEditing}
-            />
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Full Name</label>
+          <input 
+            type="text" 
+            value={profile.fullName}
+            onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+            className={styles.formInput}
+            disabled={!isEditing || isLoading}
+          />
         </div>
 
         <div className={styles.formRow}>
@@ -207,19 +456,19 @@ const Settings = () => {
             <input 
               type="email" 
               value={profile.email}
-              onChange={(e) => setProfile({ ...profile, email: e.target.value })}
               className={styles.formInput}
-              disabled={!isEditing}
+              disabled={true}
             />
           </div>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Phone</label>
             <input 
               type="tel" 
-              value={profile.phone}
+              value={profile.phone || ''}
               onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
               className={styles.formInput}
-              disabled={!isEditing}
+              disabled={!isEditing || isLoading}
+              placeholder="+1 (555) 123-4567"
             />
           </div>
         </div>
@@ -228,21 +477,23 @@ const Settings = () => {
           <label className={styles.formLabel}>Location</label>
           <input 
             type="text" 
-            value={profile.location}
+            value={profile.location || ''}
             onChange={(e) => setProfile({ ...profile, location: e.target.value })}
             className={styles.formInput}
-            disabled={!isEditing}
+            disabled={!isEditing || isLoading}
+            placeholder="City, State"
           />
         </div>
 
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>Bio</label>
           <textarea 
-            value={profile.bio}
+            value={profile.bio || ''}
             onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
             className={styles.formTextarea}
             rows={3}
-            disabled={!isEditing}
+            disabled={!isEditing || isLoading}
+            placeholder="Tell us about yourself..."
           />
         </div>
       </div>
@@ -518,11 +769,15 @@ const Settings = () => {
         <div className={styles.accountCard}>
           <div className={styles.accountCardHeader}>
             <LogOut size={20} />
-            <h3 className={styles.accountCardTitle}>Session</h3>
+            <h3 className={styles.accountCardTitle}>Account Status</h3>
           </div>
-          <p className={styles.accountCardDesc}>Sign out of your account on this device</p>
-          <button className={`${styles.accountAction} ${styles.accountActionDanger}`}>
-            Sign Out
+          <p className={styles.accountCardDesc}>Deactivate your account temporarily</p>
+          <button 
+            className={`${styles.accountAction} ${styles.accountActionDanger}`}
+            onClick={() => setShowDeactivateModal(true)}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Processing...' : 'Deactivate Account'}
             <LogOut size={16} />
           </button>
         </div>
@@ -531,6 +786,10 @@ const Settings = () => {
   );
 
   const renderContent = () => {
+    if (isLoading && !profile.fullName) {
+      return <div className={styles.loading}>Loading profile...</div>;
+    }
+
     switch(activeSection) {
       case 'profile': return renderProfileSection();
       case 'preferences': return renderPreferencesSection();
@@ -555,7 +814,7 @@ const Settings = () => {
       {showSuccessToast && (
         <div className={styles.toast}>
           <CheckCircle size={18} />
-          <span>Settings updated successfully!</span>
+          <span>{toastMessage}</span>
         </div>
       )}
 
@@ -594,7 +853,11 @@ const Settings = () => {
               <h2 className={styles.modalTitle}>Change Password</h2>
               <button 
                 className={styles.modalClose}
-                onClick={() => setShowPasswordModal(false)}
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setError(null);
+                  setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }}
               >
                 <X size={20} />
               </button>
@@ -630,19 +893,100 @@ const Settings = () => {
                   className={styles.formInput}
                 />
               </div>
+              {error && (
+                <div className={styles.errorText}>
+                  <AlertCircle size={16} />
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
             <div className={styles.modalFooter}>
               <button 
                 className={styles.btnSecondary}
-                onClick={() => setShowPasswordModal(false)}
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setError(null);
+                  setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }}
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button 
                 className={styles.btnPrimary}
                 onClick={handlePasswordChange}
+                disabled={isLoading}
               >
-                Update Password
+                {isLoading ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate Account Modal */}
+      {showDeactivateModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowDeactivateModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Deactivate Account</h2>
+              <button 
+                className={styles.modalClose}
+                onClick={() => {
+                  setShowDeactivateModal(false);
+                  setError(null);
+                  setDeactivateConfirm({ checked: false });
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.deleteWarning}>
+                <AlertCircle size={40} />
+                <p className={styles.deleteText}>
+                  Are you sure you want to deactivate your account? This action can be reversed.
+                  Your profile will be hidden and you won't be able to access your account until you reactivate it.
+                  Your data including workout history, progress, and membership information will be preserved.
+                </p>
+                
+                <div className={styles.deleteConfirm}>
+                  <label className={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      checked={deactivateConfirm.checked}
+                      onChange={(e) => setDeactivateConfirm({ ...deactivateConfirm, checked: e.target.checked })}
+                    />
+                    <span>I understand my account will be temporarily deactivated</span>
+                  </label>
+                </div>
+
+                {error && (
+                  <div className={styles.errorText}>
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.btnSecondary}
+                onClick={() => {
+                  setShowDeactivateModal(false);
+                  setError(null);
+                  setDeactivateConfirm({ checked: false });
+                }}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.btnDanger}
+                onClick={handleDeactivateAccount}
+                disabled={isLoading || !deactivateConfirm.checked}
+              >
+                {isLoading ? 'Processing...' : 'Deactivate Account'}
               </button>
             </div>
           </div>
@@ -657,7 +1001,11 @@ const Settings = () => {
               <h2 className={styles.modalTitle}>Delete Account</h2>
               <button 
                 className={styles.modalClose}
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setError(null);
+                  setDeleteConfirm({ checked: false, password: '' });
+                }}
               >
                 <X size={20} />
               </button>
@@ -670,26 +1018,55 @@ const Settings = () => {
                   All your data, including workout history, progress, and membership information,
                   will be permanently removed.
                 </p>
+                
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Enter your password to confirm</label>
+                  <input 
+                    type="password" 
+                    placeholder="Enter your password"
+                    value={deleteConfirm.password}
+                    onChange={(e) => setDeleteConfirm({ ...deleteConfirm, password: e.target.value })}
+                    className={styles.formInput}
+                  />
+                </div>
+
                 <div className={styles.deleteConfirm}>
                   <label className={styles.checkboxLabel}>
-                    <input type="checkbox" />
+                    <input 
+                      type="checkbox" 
+                      checked={deleteConfirm.checked}
+                      onChange={(e) => setDeleteConfirm({ ...deleteConfirm, checked: e.target.checked })}
+                    />
                     <span>I understand this action is permanent</span>
                   </label>
                 </div>
+
+                {error && (
+                  <div className={styles.errorText}>
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className={styles.modalFooter}>
               <button 
                 className={styles.btnSecondary}
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setError(null);
+                  setDeleteConfirm({ checked: false, password: '' });
+                }}
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button 
                 className={styles.btnDanger}
                 onClick={handleDeleteAccount}
+                disabled={isLoading || !deleteConfirm.checked || !deleteConfirm.password}
               >
-                Delete Account
+                {isLoading ? 'Deleting...' : 'Delete Account'}
               </button>
             </div>
           </div>

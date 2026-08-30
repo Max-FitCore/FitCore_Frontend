@@ -986,3 +986,90 @@
     padding: 1rem;
   }
 }
+
+/* Add to Settings.module.css */
+
+/* ===== Loading State ===== */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ===== Error Banner ===== */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--error-red-soft);
+  border: 1px solid var(--error-red);
+  border-radius: 12px;
+  color: var(--error-red);
+  margin-bottom: 1.5rem;
+}
+
+.errorText {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--error-red);
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+}
+
+/* ===== Button Disabled States ===== */
+.btnPrimary:disabled,
+.btnSecondary:disabled,
+.btnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnPrimary:disabled:hover,
+.btnSecondary:disabled:hover,
+.btnDanger:disabled:hover {
+  transform: none;
+  opacity: 0.5;
+}
+
+/* ===== Account Action Disabled ===== */
+.accountAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive Additions ===== */
+@media (max-width: 768px) {
+  .errorBanner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Add to Settings.module.css */
+
+/* ===== Deactivate Modal ===== */
+.deactivateWarning {
+  text-align: center;
+}
+
+.deactivateWarning svg {
+  color: var(--warning-yellow);
+  margin-bottom: 1rem;
+}
+
+.deactivateText {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+}
+
+.deactivateConfirm {
+  text-align: left;
+}
