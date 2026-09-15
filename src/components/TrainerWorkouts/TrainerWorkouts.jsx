@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Dumbbell, Users, Calendar } from 'lucide-react';
-import CreatePlanModal from '../CreateClassModal/CreateClassModal';
+import CreatePlanModal from '../CreatePlanModal/CreatePlanModal';
 import EditPlanModal from '../EditPlanModal/EditPlanModal';
 import DeletePlanModal from '../DeletePlanModal/DeletePlanModal';
 import styles from './TrainerWorkouts.module.css';
@@ -15,7 +15,7 @@ const TrainerPlans = () => {
   const [planToDelete, setPlanToDelete] = useState(null);
   const [toast, setToast] = useState(null);
 
-  /* ---------- Load plans ---------- */
+  /* ---------- Load plans (only fetch this component owns) ---------- */
   useEffect(() => {
     (async () => {
       try {
@@ -39,84 +39,36 @@ const TrainerPlans = () => {
     })();
   }, []);
 
+  /* Auto-dismiss toast */
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  /* ---------- CREATE — called by CreatePlanModal via onCreatePlan ---------- */
-  const handleCreatePlan = async (planData) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/api/workout-plans/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(planData),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || 'Failed to create plan');
-      }
-      setPlans((prev) => [data.data, ...prev]);
-      setToast({ type: 'success', message: 'Workout plan created' });
-    } catch (err) {
-      setToast({ type: 'error', message: err.message });
-      throw err; // rethrow so the modal can show it inline
-    }
+  /* ---------- Modal callbacks — no network calls here ---------- */
+
+  // CreatePlanModal calls this AFTER it successfully POSTs
+  const handlePlanCreated = (newPlan) => {
+    setPlans((prev) => [newPlan, ...prev]);
+    setToast({ type: 'success', message: 'Workout plan created' });
   };
 
-  /* ---------- UPDATE ---------- */
-  const handleUpdatePlan = async (updatedPlan) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/api/workout-plans/${updatedPlan._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(updatedPlan),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || 'Failed to update plan');
-      }
-      setPlans((prev) => prev.map((p) => (p._id === data.data._id ? data.data : p)));
-      setToast({ type: 'success', message: 'Plan updated' });
-      setEditingPlan(null);
-    } catch (err) {
-      setToast({ type: 'error', message: err.message });
-      throw err;
-    }
+  // EditPlanModal calls this AFTER it successfully PUTs
+  const handlePlanUpdated = (updatedPlan) => {
+    setPlans((prev) =>
+      prev.map((p) => (p._id === updatedPlan._id ? updatedPlan : p))
+    );
+    setToast({ type: 'success', message: 'Plan updated' });
   };
 
-  /* ---------- DELETE ---------- */
-  const handleDeletePlan = async (planId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/api/workout-plans/${planId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || 'Failed to delete plan');
-      }
-      setPlans((prev) => prev.filter((p) => p._id !== planId));
-      setToast({ type: 'success', message: 'Plan deleted' });
-      setPlanToDelete(null);
-    } catch (err) {
-      setToast({ type: 'error', message: err.message });
-    }
+  // DeletePlanModal calls this AFTER it successfully DELETEs
+  const handlePlanDeleted = (deletedId) => {
+    setPlans((prev) => prev.filter((p) => p._id !== deletedId));
+    setToast({ type: 'success', message: 'Plan deleted' });
   };
 
+  /* ---------- Render ---------- */
   if (loading) {
     return (
       <div className={styles.plansPage}>
@@ -206,31 +158,35 @@ const TrainerPlans = () => {
         </div>
       )}
 
-      {/* Modals — prop names match the components exactly */}
+      {/* Modals — prop names match what each component expects */}
       <CreatePlanModal
         isOpen={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreatePlan={handleCreatePlan}
+        onPlanCreated={handlePlanCreated}
       />
 
       <EditPlanModal
         isOpen={!!editingPlan}
         onClose={() => setEditingPlan(null)}
         plan={editingPlan}
-        onUpdatePlan={handleUpdatePlan}
+        onUpdated={handlePlanUpdated}
       />
 
       <DeletePlanModal
         isOpen={!!planToDelete}
         onClose={() => setPlanToDelete(null)}
         plan={planToDelete}
-        onConfirmDelete={handleDeletePlan}
+        onDeleted={handlePlanDeleted}
       />
 
       {toast && (
         <div
           className={styles.toast}
-          style={toast.type === 'error' ? { borderColor: 'rgba(248, 113, 113, 0.5)' } : undefined}
+          style={
+            toast.type === 'error'
+              ? { borderColor: 'rgba(248, 113, 113, 0.5)' }
+              : undefined
+          }
         >
           {toast.message}
         </div>
