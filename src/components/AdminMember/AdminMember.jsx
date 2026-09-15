@@ -1,31 +1,116 @@
-import React, { useState } from 'react';
-import { Search, Plus, Edit2, Trash2, Check, X, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Check,
+  X,
+  AlertTriangle,
+  Loader2,
+} from 'lucide-react';
+import axios from 'axios';
 import styles from './AdminMember.module.css';
 
-const Members = () => {
-  // Initial members data
-  const initialMembers = [
-    { id: 1, name: 'Sara Nabil', email: 'sara.nabil@mail.com', plan: 'Premium', trainer: 'Marcus Vale', joined: '2025-04-12', lastVisit: '2026-08-17', status: 'Active' },
-    { id: 2, name: 'Omar Haddad', email: 'omar.haddad@mail.com', plan: 'VIP', trainer: 'Marcus Vale', joined: '2025-11-02', lastVisit: '2026-08-18', status: 'Active' },
-    { id: 3, name: 'Lina Farouk', email: 'lina.farouk@mail.com', plan: 'Basic', trainer: 'Dario Khan', joined: '2026-02-20', lastVisit: '2026-08-15', status: 'Expiring' },
-    { id: 4, name: 'Youssef Adel', email: 'y.adel@mail.com', plan: 'Premium', trainer: 'Elena Rossi', joined: '2025-08-08', lastVisit: '2026-08-16', status: 'Active' },
-    { id: 5, name: 'Nour Salem', email: 'nour.salem@mail.com', plan: 'Basic', trainer: 'Elena Rossi', joined: '2024-12-01', lastVisit: '2026-06-29', status: 'Expired' },
-    { id: 6, name: 'Karim Zaki', email: 'karim.zaki@mail.com', plan: 'VIP', trainer: 'Dario Khan', joined: '2026-01-15', lastVisit: '2026-08-18', status: 'Active' },
-  ];
+/* ============================================================
+   INLINE API SERVICE
+   ============================================================ */
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  const [members, setMembers] = useState(initialMembers);
+const api = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Attach auth token on every request
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      localStorage.getItem('token') ||
+      localStorage.getItem('authToken') ||
+      sessionStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+const adminMemberService = {
+  getAll: async () => {
+    const { data } = await api.get('/admin/members');
+    return data;
+  },
+  getById: async (id) => {
+    const { data } = await api.get(`/admin/members/${id}`);
+    return data;
+  },
+  create: async (payload) => {
+    const { data } = await api.post('/admin/members/add', payload);
+    return data;
+  },
+  update: async (id, payload) => {
+    const { data } = await api.put(`/admin/members/${id}`, payload);
+    return data;
+  },
+  remove: async (id) => {
+    const { data } = await api.delete(`/admin/members/${id}`);
+    return data;
+  },
+};
+
+/* ============================================================
+   BACKEND → UI MAPPER
+   ============================================================ */
+const mapFromBackend = (u) => {
+  if (!u) return null;
+  return {
+    id: u._id,
+    name: u.fullName || '',
+    email: u.email || '',
+    phone: u.phone || '',
+    location: u.location || '',
+    bio: u.bio || '',
+    // UI-only fields (not persisted to backend):
+    plan: 'Basic',
+    trainer: '—',
+    joined: u.createdAt
+      ? new Date(u.createdAt).toISOString().split('T')[0]
+      : '',
+    lastVisit: '—',
+    // Map isActive → status string
+    status: u.isActive === false ? 'Expired' : 'Active',
+  };
+};
+
+/* ============================================================
+   COMPONENT
+   ============================================================ */
+const Members = () => {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('All');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [memberToDelete, setMemberToDelete] = useState(null);
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  const [password, setPassword] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
+    location: '',
     plan: 'Basic',
     trainer: '',
     joined: '',
@@ -33,95 +118,200 @@ const Members = () => {
     status: 'Active',
   });
 
-  // Filter and search members
-  const filteredMembers = members.filter((member) => {
+  // ============ FETCH ============
+  const fetchMembers = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await adminMemberService.getAll();
+      const list = (res.data || []).map(mapFromBackend).filter(Boolean);
+      setMembers(list);
+    } catch (err) {
+      console.error('Fetch members error:', err);
+      setError(
+        err.response?.data?.message ||
+          'Failed to load members. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  // ============ FILTER ============
+  const filteredMembers = members.filter((m) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+      m.name.toLowerCase().includes(term) ||
+      m.email.toLowerCase().includes(term);
     const matchesFilter =
-      filter === 'All' || member.status.toLowerCase() === filter.toLowerCase();
+      filter === 'All' || m.status.toLowerCase() === filter.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
-  // Handle input changes
+  // ============ TOAST ============
+  const showToastMessage = (msg, type = 'success') => {
+    setToastMessage(msg);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // ============ FORM ============
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Open modal for adding
-  const handleAdd = () => {
-    setEditingMember(null);
+  const resetForm = () => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
+      location: '',
       plan: 'Basic',
       trainer: '',
       joined: new Date().toISOString().split('T')[0],
       lastVisit: '',
       status: 'Active',
     });
+    setPassword('');
+  };
+
+  const handleAdd = () => {
+    setEditingMember(null);
+    resetForm();
     setIsModalOpen(true);
   };
 
-  // Open modal for editing
   const handleEdit = (member) => {
     setEditingMember(member);
-    setFormData({ ...member });
+    setFormData({
+      name: member.name || '',
+      email: member.email || '',
+      phone: member.phone || '',
+      location: member.location || '',
+      plan: member.plan || 'Basic',
+      trainer: member.trainer || '',
+      joined: member.joined || '',
+      lastVisit: member.lastVisit || '',
+      status: member.status || 'Active',
+    });
     setIsModalOpen(true);
   };
 
-  // Open delete confirmation modal
+  // ============ DELETE ============
   const handleDeleteClick = (member) => {
     setMemberToDelete(member);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm delete
-  const confirmDelete = () => {
-    if (memberToDelete) {
+  const confirmDelete = async () => {
+    if (!memberToDelete) return;
+    try {
+      setDeleting(true);
+      await adminMemberService.remove(memberToDelete.id);
       setMembers((prev) => prev.filter((m) => m.id !== memberToDelete.id));
       showToastMessage(`${memberToDelete.name} has been removed`);
       setMemberToDelete(null);
       setIsDeleteModalOpen(false);
+    } catch (err) {
+      console.error('Delete member error:', err);
+      showToastMessage(
+        err.response?.data?.message || 'Failed to delete member',
+        'error'
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // Cancel delete
   const cancelDelete = () => {
     setMemberToDelete(null);
     setIsDeleteModalOpen(false);
   };
 
-  // Handle form submit
-  const handleSubmit = (e) => {
+  // ============ SUBMIT ============
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingMember) {
-      // Update existing member
-      setMembers((prev) =>
-        prev.map((m) => (m.id === editingMember.id ? { ...formData, id: m.id } : m))
+    setSubmitting(true);
+
+    try {
+      if (editingMember) {
+        // ---- UPDATE ----
+        const payload = {
+          fullName: formData.name?.trim(),
+          phone: formData.phone?.trim() || null,
+          location: formData.location?.trim() || null,
+          isActive: formData.status === 'Active',
+        };
+
+        const res = await adminMemberService.update(editingMember.id, payload);
+
+        const updated = {
+          ...mapFromBackend(res.data),
+          plan: formData.plan,
+          trainer: formData.trainer,
+          lastVisit: formData.lastVisit,
+        };
+
+        setMembers((prev) =>
+          prev.map((m) => (m.id === editingMember.id ? updated : m))
+        );
+        showToastMessage('Member updated successfully');
+      } else {
+        // ---- CREATE ----
+        if (!password || password.length < 6) {
+          showToastMessage('Password must be at least 6 characters', 'error');
+          setSubmitting(false);
+          return;
+        }
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+          showToastMessage(
+            'Password must contain 1 uppercase, 1 lowercase, and 1 number',
+            'error'
+          );
+          setSubmitting(false);
+          return;
+        }
+
+        const payload = {
+          fullName: formData.name?.trim(),
+          email: formData.email?.trim(),
+          password,
+          phone: formData.phone?.trim() || null,
+          location: formData.location?.trim() || null,
+        };
+
+        const res = await adminMemberService.create(payload);
+
+        const created = {
+          ...mapFromBackend(res.data),
+          plan: formData.plan,
+          trainer: formData.trainer,
+          lastVisit: formData.lastVisit,
+        };
+
+        setMembers((prev) => [created, ...prev]);
+        showToastMessage('Member added successfully');
+      }
+
+      setIsModalOpen(false);
+      resetForm();
+    } catch (err) {
+      console.error('Submit member error:', err);
+      showToastMessage(
+        err.response?.data?.message || 'Operation failed. Please try again.',
+        'error'
       );
-      showToastMessage('Member updated successfully');
-    } else {
-      // Add new member
-      const newMember = {
-        ...formData,
-        id: Math.max(...members.map((m) => m.id)) + 1,
-      };
-      setMembers((prev) => [...prev, newMember]);
-      showToastMessage('Member added successfully');
+    } finally {
+      setSubmitting(false);
     }
-    setIsModalOpen(false);
   };
 
-  // Show toast notification
-  const showToastMessage = (message) => {
-    setToastMessage(message);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
-
-  // Get status badge class
   const getStatusClass = (status) => {
     switch (status) {
       case 'Active':
@@ -135,13 +325,20 @@ const Members = () => {
     }
   };
 
+  // ============ RENDER ============
   return (
     <div className={styles.membersPage}>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Members</h1>
-          <p className={styles.subtitle}>{members.length} registered members</p>
+          <p className={styles.subtitle}>
+            {loading
+              ? 'Loading…'
+              : `${members.length} registered member${
+                  members.length !== 1 ? 's' : ''
+                }`}
+          </p>
         </div>
         <button className={styles.addBtn} onClick={handleAdd}>
           <Plus size={18} />
@@ -165,7 +362,9 @@ const Members = () => {
           {['All', 'Active', 'Expiring', 'Expired'].map((tab) => (
             <button
               key={tab}
-              className={`${styles.filterTab} ${filter === tab ? styles.active : ''}`}
+              className={`${styles.filterTab} ${
+                filter === tab ? styles.active : ''
+              }`}
               onClick={() => setFilter(tab)}
             >
               {tab}
@@ -174,74 +373,154 @@ const Members = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Member</th>
-              <th>Plan</th>
-              <th>Trainer</th>
-              <th>Joined</th>
-              <th>Last visit</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMembers.map((member) => (
-              <tr key={member.id}>
-                <td>
-                  <div className={styles.memberCell}>
-                    <span className={styles.memberName}>{member.name}</span>
-                    <span className={styles.memberEmail}>{member.email}</span>
-                  </div>
-                </td>
-                <td>{member.plan}</td>
-                <td>{member.trainer}</td>
-                <td>{member.joined}</td>
-                <td>{member.lastVisit}</td>
-                <td>
-                  <span className={`${styles.statusBadge} ${getStatusClass(member.status)}`}>
-                    {member.status}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    className={`${styles.actionBtn} ${styles.editBtn}`}
-                    onClick={() => handleEdit(member)}
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    onClick={() => handleDeleteClick(member)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Loading */}
+      {loading && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '3rem',
+            color: '#9ca3af',
+            gap: '0.75rem',
+          }}
+        >
+          <Loader2 size={22} className="spin" />
+          Loading members…
+        </div>
+      )}
 
-      {/* Add/Edit Member Modal */}
+      {/* Error */}
+      {!loading && error && (
+        <div
+          style={{
+            padding: '1.5rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '12px',
+            color: '#ef4444',
+            textAlign: 'center',
+          }}
+        >
+          {error}
+          <button
+            onClick={fetchMembers}
+            style={{
+              marginLeft: '1rem',
+              padding: '0.4rem 1rem',
+              background: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Table */}
+      {!loading && !error && (
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Plan</th>
+                <th>Trainer</th>
+                <th>Joined</th>
+                <th>Last visit</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    style={{
+                      textAlign: 'center',
+                      padding: '2rem',
+                      color: '#6b7280',
+                    }}
+                  >
+                    No members found
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((member) => (
+                  <tr key={member.id}>
+                    <td>
+                      <div className={styles.memberCell}>
+                        <span className={styles.memberName}>
+                          {member.name}
+                        </span>
+                        <span className={styles.memberEmail}>
+                          {member.email}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{member.plan}</td>
+                    <td>{member.trainer}</td>
+                    <td>{member.joined}</td>
+                    <td>{member.lastVisit}</td>
+                    <td>
+                      <span
+                        className={`${styles.statusBadge} ${getStatusClass(
+                          member.status
+                        )}`}
+                      >
+                        {member.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className={`${styles.actionBtn} ${styles.editBtn}`}
+                        onClick={() => handleEdit(member)}
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                        onClick={() => handleDeleteClick(member)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ============ Add/Edit Modal ============ */}
       {isModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => !submitting && setIsModalOpen(false)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>
                 {editingMember ? 'Edit Member' : 'Add New Member'}
               </h2>
-              <button 
-                className={styles.closeBtn} 
+              <button
+                className={styles.closeBtn}
                 onClick={() => setIsModalOpen(false)}
+                disabled={submitting}
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className={styles.modalForm}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Full Name</label>
@@ -252,6 +531,7 @@ const Members = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  disabled={submitting}
                 />
               </div>
 
@@ -264,7 +544,49 @@ const Members = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
+                  disabled={!!editingMember || submitting}
                 />
+              </div>
+
+              {!editingMember && (
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Password</label>
+                  <input
+                    type="password"
+                    className={styles.formInput}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 6 chars, 1 upper, 1 lower, 1 number"
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+              )}
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    className={styles.formInput}
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    className={styles.formInput}
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    disabled={submitting}
+                  />
+                </div>
               </div>
 
               <div className={styles.formRow}>
@@ -275,6 +597,7 @@ const Members = () => {
                     className={styles.formSelect}
                     value={formData.plan}
                     onChange={handleInputChange}
+                    disabled={submitting}
                   >
                     <option value="Basic">Basic</option>
                     <option value="Premium">Premium</option>
@@ -290,7 +613,7 @@ const Members = () => {
                     className={styles.formInput}
                     value={formData.trainer}
                     onChange={handleInputChange}
-                    required
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -304,7 +627,7 @@ const Members = () => {
                     className={styles.formInput}
                     value={formData.joined}
                     onChange={handleInputChange}
-                    required
+                    disabled
                   />
                 </div>
 
@@ -316,7 +639,7 @@ const Members = () => {
                     className={styles.formInput}
                     value={formData.lastVisit}
                     onChange={handleInputChange}
-                    required
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -328,6 +651,7 @@ const Members = () => {
                   className={styles.formSelect}
                   value={formData.status}
                   onChange={handleInputChange}
+                  disabled={submitting}
                 >
                   <option value="Active">Active</option>
                   <option value="Expiring">Expiring</option>
@@ -340,11 +664,20 @@ const Members = () => {
                   type="button"
                   className={styles.cancelBtn}
                   onClick={() => setIsModalOpen(false)}
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
-                <button type="submit" className={styles.submitBtn}>
-                  {editingMember ? 'Update Member' : 'Add Member'}
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? 'Saving…'
+                    : editingMember
+                    ? 'Update Member'
+                    : 'Add Member'}
                 </button>
               </div>
             </form>
@@ -352,29 +685,37 @@ const Members = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* ============ Delete Modal ============ */}
       {isDeleteModalOpen && memberToDelete && (
         <div className={styles.modalOverlay} onClick={cancelDelete}>
-          <div className={styles.deleteModalContent} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={styles.deleteModalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.deleteModalIcon}>
               <AlertTriangle size={48} />
             </div>
-            
+
             <h2 className={styles.deleteModalTitle}>Delete Member</h2>
-            
+
             <p className={styles.deleteModalText}>
-              Are you sure you want to remove <strong>{memberToDelete.name}</strong>? 
-              This action cannot be undone and will permanently delete their data.
+              Are you sure you want to remove{' '}
+              <strong>{memberToDelete.name}</strong>? This action cannot be
+              undone and will permanently delete their data.
             </p>
 
             <div className={styles.deleteModalInfo}>
               <div className={styles.deleteModalInfoItem}>
                 <span className={styles.deleteModalInfoLabel}>Email:</span>
-                <span className={styles.deleteModalInfoValue}>{memberToDelete.email}</span>
+                <span className={styles.deleteModalInfoValue}>
+                  {memberToDelete.email}
+                </span>
               </div>
               <div className={styles.deleteModalInfoItem}>
                 <span className={styles.deleteModalInfoLabel}>Plan:</span>
-                <span className={styles.deleteModalInfoValue}>{memberToDelete.plan}</span>
+                <span className={styles.deleteModalInfoValue}>
+                  {memberToDelete.plan}
+                </span>
               </div>
             </div>
 
@@ -383,6 +724,7 @@ const Members = () => {
                 type="button"
                 className={styles.cancelBtn}
                 onClick={cancelDelete}
+                disabled={deleting}
               >
                 Cancel
               </button>
@@ -390,20 +732,42 @@ const Members = () => {
                 type="button"
                 className={styles.deleteConfirmBtn}
                 onClick={confirmDelete}
+                disabled={deleting}
               >
                 <Trash2 size={16} style={{ marginRight: '6px' }} />
-                Delete Member
+                {deleting ? 'Deleting…' : 'Delete Member'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Toast Notification */}
+      {/* ============ Toast ============ */}
       {showToast && (
-        <div className={styles.toast}>
-          <div className={styles.toastIcon}>
-            <Check size={16} />
+        <div
+          className={styles.toast}
+          style={
+            toastType === 'error'
+              ? {
+                  borderColor: 'rgba(239, 68, 68, 0.4)',
+                  boxShadow:
+                    '0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(239, 68, 68, 0.2)',
+                }
+              : undefined
+          }
+        >
+          <div
+            className={styles.toastIcon}
+            style={
+              toastType === 'error'
+                ? {
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    color: '#ef4444',
+                  }
+                : undefined
+            }
+          >
+            {toastType === 'error' ? <X size={16} /> : <Check size={16} />}
           </div>
           {toastMessage}
         </div>
