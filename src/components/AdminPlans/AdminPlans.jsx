@@ -1,74 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Check, X, AlertTriangle, CheckCircle } from 'lucide-react';
 import styles from './AdminPlans.module.css';
 
-const Plans = () => {
-  // Initial plans data
-  const initialPlans = [
-    {
-      id: 1,
-      name: 'Basic',
-      description: 'Everything you need to start moving.',
-      price: 29,
-      subscribers: 148,
-      highlighted: false,
-      features: [
-        'Full gym floor access',
-        '2 group classes / month',
-        'Attendance tracking',
-        'Mobile app access',
-      ],
-    },
-    {
-      id: 2,
-      name: 'Premium',
-      description: 'Structured training with real coaching.',
-      price: 59,
-      subscribers: 132,
-      highlighted: true,
-      features: [
-        'Unlimited gym access',
-        'Unlimited group classes',
-        'Personalised workout plans',
-        'Monthly progress review',
-        'Nutrition guidance',
-      ],
-    },
-    {
-      id: 3,
-      name: 'VIP',
-      description: 'One-to-one performance programming.',
-      price: 119,
-      subscribers: 71,
-      highlighted: false,
-      features: [
-        'Everything in Premium',
-        '8 personal training sessions',
-        'Priority class booking',
-        'Body composition scans',
-        'Recovery & sauna suite',
-      ],
-    },
-  ];
+const API_BASE = 'http://localhost:5000/api';
 
-  const [plans, setPlans] = useState(initialPlans);
+const Plans = () => {
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [planToDelete, setPlanToDelete] = useState(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const [formData, setFormData] = useState({
-    name: '',
+  const emptyForm = {
+    planName: '',
     description: '',
     price: '',
-    subscribers: '',
-    highlighted: false,
+    duration: 'Monthly',
+    discount: 0,
+    isPopular: false,
+    isActive: true,
     features: [''],
-  });
+  };
+  const [formData, setFormData] = useState(emptyForm);
 
-  // Handle input changes
+  // ---------- Auth headers ----------
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
+  // ---------- Load plans ----------
+  const loadPlans = async () => {
+    try {
+      setLoading(true);
+      setLoadError('');
+      const res = await fetch(`${API_BASE}/admin/membership-plans`, {
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to load plans');
+      }
+      setPlans(data.data);
+    } catch (err) {
+      setLoadError(err.message || 'Failed to load plans');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  // ---------- Form handlers ----------
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -77,140 +74,192 @@ const Plans = () => {
     }));
   };
 
-  // Handle feature changes
   const handleFeatureChange = (index, value) => {
     const newFeatures = [...formData.features];
     newFeatures[index] = value;
     setFormData((prev) => ({ ...prev, features: newFeatures }));
   };
 
-  // Add feature
   const addFeature = () => {
     setFormData((prev) => ({ ...prev, features: [...prev.features, ''] }));
   };
 
-  // Remove feature
   const removeFeature = (index) => {
     const newFeatures = formData.features.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, features: newFeatures.length ? newFeatures : [''] }));
+    setFormData((prev) => ({
+      ...prev,
+      features: newFeatures.length ? newFeatures : [''],
+    }));
   };
 
-  // Open modal for adding
+  // ---------- Open modals ----------
   const handleAdd = () => {
     setEditingPlan(null);
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      subscribers: '',
-      highlighted: false,
-      features: [''],
-    });
+    setFormData(emptyForm);
     setIsModalOpen(true);
   };
 
-  // Open modal for editing
   const handleEdit = (plan) => {
     setEditingPlan(plan);
     setFormData({
-      name: plan.name,
+      planName: plan.planName,
       description: plan.description,
-      price: plan.price.toString(),
-      subscribers: plan.subscribers.toString(),
-      highlighted: plan.highlighted,
-      features: plan.features.length ? [...plan.features] : [''],
+      price: String(plan.price ?? ''),
+      duration: plan.duration || 'Monthly',
+      discount: plan.discount ?? 0,
+      isPopular: !!plan.isPopular,
+      isActive: plan.isActive !== false,
+      features: plan.features?.length ? [...plan.features] : [''],
     });
     setIsModalOpen(true);
   };
 
-  // Open delete confirmation modal
   const handleDeleteClick = (plan) => {
     setPlanToDelete(plan);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm delete
-  const confirmDelete = () => {
-    if (planToDelete) {
-      setPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
-      showToastMessage(`${planToDelete.name} plan has been removed`);
-      setPlanToDelete(null);
-      setIsDeleteModalOpen(false);
+  // ---------- Submit (create / update) ----------
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    const filteredFeatures = formData.features
+      .map((f) => f.trim())
+      .filter(Boolean);
+
+    if (filteredFeatures.length === 0) {
+      showToastMessage('Please add at least one feature');
+      return;
+    }
+
+    const payload = {
+      planName: formData.planName.trim(),
+      description: formData.description.trim(),
+      price: parseFloat(formData.price) || 0,
+      duration: formData.duration,
+      discount: Number(formData.discount) || 0,
+      isPopular: formData.isPopular,
+      isActive: formData.isActive,
+      features: filteredFeatures,
+    };
+
+    try {
+      setSubmitting(true);
+
+      if (editingPlan) {
+        const res = await fetch(
+          `${API_BASE}/admin/membership-plans/${editingPlan._id}`,
+          {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Update failed');
+        }
+        setPlans((prev) =>
+          prev.map((p) => (p._id === editingPlan._id ? data.data : p))
+        );
+        showToastMessage(`${payload.planName} plan has been updated successfully`);
+      } else {
+        const res = await fetch(`${API_BASE}/admin/membership-plans`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Create failed');
+        }
+        setPlans((prev) => [...prev, data.data]);
+        showToastMessage(`${payload.planName} plan has been added successfully`);
+      }
+
+      setIsModalOpen(false);
+    } catch (err) {
+      showToastMessage(err.message || 'Something went wrong');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Cancel delete
+  // ---------- Delete ----------
+  const confirmDelete = async () => {
+    if (!planToDelete || deleting) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(
+        `${API_BASE}/admin/membership-plans/${planToDelete._id}`,
+        {
+          method: 'DELETE',
+          headers: authHeaders(),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Delete failed');
+      }
+      setPlans((prev) => prev.filter((p) => p._id !== planToDelete._id));
+      showToastMessage(`${planToDelete.planName} plan has been removed`);
+      setPlanToDelete(null);
+      setIsDeleteModalOpen(false);
+    } catch (err) {
+      showToastMessage(err.message || 'Failed to delete plan');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const cancelDelete = () => {
+    if (deleting) return;
     setPlanToDelete(null);
     setIsDeleteModalOpen(false);
   };
 
-  // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Filter out empty features
-    const filteredFeatures = formData.features.filter((f) => f.trim() !== '');
-
-    if (editingPlan) {
-      // Update existing plan
-      const updatedPlan = {
-        ...editingPlan,
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price) || 0,
-        subscribers: parseInt(formData.subscribers) || 0,
-        highlighted: formData.highlighted,
-        features: filteredFeatures,
-      };
-
-      // If this plan is highlighted, remove highlight from others
-      if (formData.highlighted) {
-        setPlans((prev) =>
-          prev.map((p) =>
-            p.id === editingPlan.id ? updatedPlan : { ...p, highlighted: false }
-          )
-        );
-      } else {
-        setPlans((prev) =>
-          prev.map((p) => (p.id === editingPlan.id ? updatedPlan : p))
-        );
-      }
-
-      showToastMessage(`${formData.name} plan has been updated successfully`);
-    } else {
-      // Add new plan
-      const newPlan = {
-        id: Math.max(...plans.map((p) => p.id)) + 1,
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price) || 0,
-        subscribers: parseInt(formData.subscribers) || 0,
-        highlighted: formData.highlighted,
-        features: filteredFeatures,
-      };
-
-      // If highlighted, remove highlight from others
-      if (formData.highlighted) {
-        setPlans((prev) =>
-          prev.map((p) => ({ ...p, highlighted: false })).concat(newPlan)
-        );
-      } else {
-        setPlans((prev) => [...prev, newPlan]);
-      }
-
-      showToastMessage(`${newPlan.name} plan has been added successfully`);
-    }
-
-    setIsModalOpen(false);
-  };
-
-  // Show toast notification
+  // ---------- Toast ----------
   const showToastMessage = (message) => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
+
+  // ---------- Helpers ----------
+  const durationShort = (d) => {
+    switch (d) {
+      case 'Monthly':
+        return 'mo';
+      case 'Quarterly':
+        return 'qtr';
+      case 'Half-Yearly':
+        return '6mo';
+      case 'Yearly':
+        return 'yr';
+      default:
+        return 'mo';
+    }
+  };
+
+  // ---------- Render ----------
+  if (loading) {
+    return (
+      <div className={styles.plansPage}>
+        <div className={styles.stateMessage}>Loading plans…</div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className={styles.plansPage}>
+        <div className={`${styles.stateMessage} ${styles.stateError}`}>
+          {loadError}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.plansPage}>
@@ -227,64 +276,72 @@ const Plans = () => {
       </div>
 
       {/* Plans Grid */}
-      <div className={styles.plansGrid}>
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`${styles.planCard} ${
-              plan.highlighted ? styles.planCardHighlight : ''
-            }`}
-          >
-            {/* Delete Button */}
-            <button
-              className={styles.deleteBtn}
-              onClick={() => handleDeleteClick(plan)}
-              title="Delete plan"
+      {plans.length === 0 ? (
+        <div className={styles.stateMessage}>
+          No plans yet. Click “New plan” to create one.
+        </div>
+      ) : (
+        <div className={styles.plansGrid}>
+          {plans.map((plan) => (
+            <div
+              key={plan._id}
+              className={`${styles.planCard} ${
+                plan.isPopular ? styles.planCardHighlight : ''
+              }`}
             >
-              <Trash2 size={16} />
-            </button>
+              <button
+                className={styles.deleteBtn}
+                onClick={() => handleDeleteClick(plan)}
+                title="Delete plan"
+              >
+                <Trash2 size={16} />
+              </button>
 
-            {/* Plan Header */}
-            <div className={styles.planHeader}>
-              <h3 className={styles.planName}>{plan.name}</h3>
-              <p className={styles.planDescription}>{plan.description}</p>
-            </div>
-
-            {/* Pricing */}
-            <div className={styles.planPricing}>
-              <div className={styles.planPrice}>
-                <span className={styles.priceAmount}>${plan.price}</span>
-                <span className={styles.pricePeriod}>/mo</span>
+              <div className={styles.planHeader}>
+                <h3 className={styles.planName}>{plan.planName}</h3>
+                <p className={styles.planDescription}>{plan.description}</p>
               </div>
-              <p className={styles.planSubscribers}>
-                {plan.subscribers} active subscribers
-              </p>
+
+              <div className={styles.planPricing}>
+                <div className={styles.planPrice}>
+                  <span className={styles.priceAmount}>${plan.price}</span>
+                  <span className={styles.pricePeriod}>
+                    /{durationShort(plan.duration)}
+                  </span>
+                </div>
+                {plan.discount > 0 && (
+                  <p className={styles.planSubscribers}>
+                    {plan.discount}% discount
+                  </p>
+                )}
+              </div>
+
+              <ul className={styles.featuresList}>
+                {plan.features.map((feature, index) => (
+                  <li key={index} className={styles.featureItem}>
+                    <CheckCircle size={16} className={styles.featureIcon} />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                className={styles.editBtn}
+                onClick={() => handleEdit(plan)}
+              >
+                Edit plan
+              </button>
             </div>
-
-            {/* Features */}
-            <ul className={styles.featuresList}>
-              {plan.features.map((feature, index) => (
-                <li key={index} className={styles.featureItem}>
-                  <CheckCircle size={16} className={styles.featureIcon} />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Edit Button */}
-            <button
-              className={styles.editBtn}
-              onClick={() => handleEdit(plan)}
-            >
-              Edit plan
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Add/Edit Plan Modal */}
       {isModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => !submitting && setIsModalOpen(false)}
+        >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>
@@ -292,7 +349,8 @@ const Plans = () => {
               </h2>
               <button
                 className={styles.closeBtn}
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => !submitting && setIsModalOpen(false)}
+                disabled={submitting}
               >
                 <X size={20} />
               </button>
@@ -304,11 +362,12 @@ const Plans = () => {
                   <label className={styles.formLabel}>Plan Name *</label>
                   <input
                     type="text"
-                    name="name"
+                    name="planName"
                     className={styles.formInput}
-                    value={formData.name}
+                    value={formData.planName}
                     onChange={handleInputChange}
                     placeholder="e.g. Premium"
+                    minLength={3}
                     required
                   />
                 </div>
@@ -338,21 +397,39 @@ const Plans = () => {
                   onChange={handleInputChange}
                   placeholder="e.g. Structured training with real coaching."
                   rows={2}
+                  maxLength={500}
                   required
                 />
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Active Subscribers</label>
-                <input
-                  type="number"
-                  name="subscribers"
-                  className={styles.formInput}
-                  value={formData.subscribers}
-                  onChange={handleInputChange}
-                  placeholder="132"
-                  min="0"
-                />
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Duration</label>
+                  <select
+                    name="duration"
+                    className={styles.formInput}
+                    value={formData.duration}
+                    onChange={handleInputChange}
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="Half-Yearly">Half-Yearly</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Discount (%)</label>
+                  <input
+                    type="number"
+                    name="discount"
+                    className={styles.formInput}
+                    value={formData.discount}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="100"
+                  />
+                </div>
               </div>
 
               <div className={styles.formGroup}>
@@ -397,14 +474,25 @@ const Plans = () => {
               <div className={styles.highlightToggle}>
                 <input
                   type="checkbox"
-                  id="highlighted"
-                  name="highlighted"
-                  checked={formData.highlighted}
+                  id="isPopular"
+                  name="isPopular"
+                  checked={formData.isPopular}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="highlighted">
+                <label htmlFor="isPopular">
                   Highlight this plan (featured with lime border)
                 </label>
+              </div>
+
+              <div className={styles.highlightToggle}>
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  name="isActive"
+                  checked={formData.isActive}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="isActive">Visible to members (active)</label>
               </div>
 
               <div className={styles.modalActions}>
@@ -412,11 +500,20 @@ const Plans = () => {
                   type="button"
                   className={styles.cancelBtn}
                   onClick={() => setIsModalOpen(false)}
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
-                <button type="submit" className={styles.submitBtn}>
-                  {editingPlan ? 'Update Plan' : 'Add Plan'}
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? 'Saving…'
+                    : editingPlan
+                    ? 'Update Plan'
+                    : 'Add Plan'}
                 </button>
               </div>
             </form>
@@ -439,24 +536,15 @@ const Plans = () => {
 
             <p className={styles.deleteModalText}>
               Are you sure you want to remove the{' '}
-              <strong>{planToDelete.name}</strong> plan? This action cannot be
-              undone and may affect {planToDelete.subscribers} active
-              subscribers.
+              <strong>{planToDelete.planName}</strong> plan? This action cannot
+              be undone.
             </p>
 
             <div className={styles.deleteModalInfo}>
               <div className={styles.deleteModalInfoItem}>
                 <span className={styles.deleteModalInfoLabel}>Price:</span>
                 <span className={styles.deleteModalInfoValue}>
-                  ${planToDelete.price}/mo
-                </span>
-              </div>
-              <div className={styles.deleteModalInfoItem}>
-                <span className={styles.deleteModalInfoLabel}>
-                  Subscribers:
-                </span>
-                <span className={styles.deleteModalInfoValue}>
-                  {planToDelete.subscribers} active
+                  ${planToDelete.price}/{durationShort(planToDelete.duration)}
                 </span>
               </div>
               <div className={styles.deleteModalInfoItem}>
@@ -472,6 +560,7 @@ const Plans = () => {
                 type="button"
                 className={styles.cancelBtn}
                 onClick={cancelDelete}
+                disabled={deleting}
               >
                 Cancel
               </button>
@@ -479,9 +568,10 @@ const Plans = () => {
                 type="button"
                 className={styles.deleteConfirmBtn}
                 onClick={confirmDelete}
+                disabled={deleting}
               >
                 <Trash2 size={16} style={{ marginRight: '6px' }} />
-                Delete Plan
+                {deleting ? 'Deleting…' : 'Delete Plan'}
               </button>
             </div>
           </div>

@@ -793,3 +793,49 @@
     bottom: 1rem;
   }
 }
+
+/* ===== State messages (loading / error / empty) ===== */
+.stateMessage {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 16px;
+  margin-top: 1rem;
+}
+
+.stateError {
+  color: var(--error-red);
+  border-color: rgba(239, 68, 68, 0.4);
+  background: var(--error-red-soft);
+}
+
+/* ===== Disabled button state ===== */
+.submitBtn:disabled,
+.cancelBtn:disabled,
+.deleteConfirmBtn:disabled,
+.closeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== Select (duration) — match input styling ===== */
+select.formInput {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+select.formInput:focus {
+  outline: none;
+  border-color: rgba(166, 241, 59, 0.5);
+  box-shadow: 0 0 0 1px rgba(166, 241, 59, 0.1);
+}
