@@ -1,128 +1,134 @@
 import React, { useState, useEffect } from 'react';
-import {
-  X,
-  Plus,
-  Trash2,
-  ChevronDown,
-} from 'lucide-react';
+import { X, Plus, Trash2, ChevronDown } from 'lucide-react';
 import styles from './EditPlanModal.module.css';
 
-const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const EditPlanModal = ({ isOpen, onClose, plan, onUpdated }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: 'Strength',
     level: 'Intermediate',
-    trainer: '',
-    duration: '8 weeks',
     sessions: 12,
     sessionsPerWeek: 3,
     description: '',
     days: [],
     image: '💪',
-    difficulty: 'Intermediate',
   });
 
   const [dayInput, setDayInput] = useState({ day: '', focus: '', exercises: '' });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const planTypes = ['Strength', 'Cardio', 'Flexibility', 'Cross Training', 'HIIT', 'Yoga', 'Pilates'];
   const levels = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
   const emojis = ['💪', '🔥', '🧘', '⚡', '🏋️', '🚴', '💃', '🥊', '🏃', '🧗'];
   const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  // Load plan data when modal opens
+  // Populate from the raw backend doc when modal opens
   useEffect(() => {
     if (plan) {
       setFormData({
-        name: plan.name || '',
-        type: plan.type || 'Strength',
-        level: plan.level || plan.difficulty || 'Intermediate',
-        trainer: plan.trainer || '',
-        duration: plan.duration || '8 weeks',
-        sessions: plan.sessions || 12,
+        name: plan.planName || '',
+        type: plan.planType || 'Strength',
+        level: plan.planLevel || 'Intermediate',
+        sessions: plan.totalSessions || 12,
         sessionsPerWeek: plan.sessionsPerWeek || 3,
         description: plan.description || '',
-        days: plan.days || [],
-        image: plan.image || '💪',
-        difficulty: plan.difficulty || plan.level || 'Intermediate',
+        days: plan.workoutDays || [],
+        image: plan.planIcon || '💪',
       });
+      setErrors({});
+      setServerError('');
     }
   }, [plan]);
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  // Day handlers
   const handleAddDay = () => {
     if (!dayInput.day.trim() || !dayInput.focus.trim()) {
-      setErrors(prev => ({ ...prev, day: 'Day and focus are required' }));
+      setErrors((prev) => ({ ...prev, day: 'Day and focus are required' }));
       return;
     }
-
-    const exercises = dayInput.exercises
-      .split('\n')
-      .filter(e => e.trim())
-      .map(e => e.trim());
-
+    const exercises = dayInput.exercises.split('\n').map((e) => e.trim()).filter(Boolean);
     if (exercises.length === 0) {
-      setErrors(prev => ({ ...prev, day: 'Add at least one exercise' }));
+      setErrors((prev) => ({ ...prev, day: 'Add at least one exercise' }));
       return;
     }
-
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      days: [...prev.days, {
-        day: dayInput.day,
-        focus: dayInput.focus,
-        exercises: exercises
-      }]
+      days: [...prev.days, { day: dayInput.day, focus: dayInput.focus, exercises }],
     }));
-
     setDayInput({ day: '', focus: '', exercises: '' });
-    setErrors(prev => ({ ...prev, day: '' }));
+    setErrors((prev) => ({ ...prev, day: '' }));
   };
 
   const handleRemoveDay = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      days: prev.days.filter((_, i) => i !== index)
-    }));
+    setFormData((prev) => ({ ...prev, days: prev.days.filter((_, i) => i !== index) }));
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Plan name is required';
-    if (!formData.trainer.trim()) newErrors.trainer = 'Trainer name is required';
-    if (!formData.duration.trim()) newErrors.duration = 'Duration is required';
     if (formData.sessions < 1) newErrors.sessions = 'Sessions must be at least 1';
     if (formData.sessionsPerWeek < 1) newErrors.sessionsPerWeek = 'Sessions per week must be at least 1';
     if (formData.days.length === 0) newErrors.days = 'Add at least one workout day';
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      const updatedPlan = {
-        ...plan,
-        ...formData,
-        difficulty: formData.level,
-        progress: plan?.progress || 0,
-        // Generate schedule from days
-        schedule: formData.days.map(day => day.day),
-      };
-      onUpdatePlan(updatedPlan);
+    setServerError('');
+    if (!validateForm() || !plan?._id) return;
+
+    const payload = {
+      planName: formData.name.trim(),
+      planType: formData.type,
+      planLevel: formData.level,
+      totalSessions: Number(formData.sessions),
+      sessionsPerWeek: Number(formData.sessionsPerWeek),
+      description: formData.description?.trim() || null,
+      planIcon: formData.image,
+      workoutDays: formData.days.map((d) => ({
+        day: d.day,
+        focus: d.focus,
+        exercises: d.exercises,
+      })),
+    };
+
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/api/workout-plans/${plan._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || 'Failed to update plan');
+      }
+      if (onUpdated) onUpdated(data.data);
+      onClose();
+    } catch (err) {
+      setServerError(err.message || 'Failed to update plan');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleClose = () => {
+    if (submitting) return;
     setErrors({});
+    setServerError('');
     onClose();
   };
 
@@ -136,13 +142,12 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             <h2 className={styles.modalTitle}>Edit Workout Plan</h2>
             <p className={styles.modalSubtitle}>Update your workout program</p>
           </div>
-          <button className={styles.modalClose} onClick={handleClose}>
+          <button className={styles.modalClose} onClick={handleClose} disabled={submitting}>
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.modalBody}>
-          {/* Plan Name */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               Plan Name <span className={styles.required}>*</span>
@@ -166,7 +171,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
                   onChange={(e) => handleChange('type', e.target.value)}
                   className={styles.formSelect}
                 >
-                  {planTypes.map(type => (
+                  {planTypes.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
@@ -182,7 +187,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
                   onChange={(e) => handleChange('level', e.target.value)}
                   className={styles.formSelect}
                 >
-                  {levels.map(level => (
+                  {levels.map((level) => (
                     <option key={level} value={level}>{level}</option>
                   ))}
                 </select>
@@ -191,35 +196,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             </div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              Trainer <span className={styles.required}>*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Mike Chen"
-              value={formData.trainer}
-              onChange={(e) => handleChange('trainer', e.target.value)}
-              className={`${styles.formInput} ${errors.trainer ? styles.inputError : ''}`}
-            />
-            {errors.trainer && <span className={styles.errorMessage}>{errors.trainer}</span>}
-          </div>
-
           <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>
-                Duration <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 8 weeks"
-                value={formData.duration}
-                onChange={(e) => handleChange('duration', e.target.value)}
-                className={`${styles.formInput} ${errors.duration ? styles.inputError : ''}`}
-              />
-              {errors.duration && <span className={styles.errorMessage}>{errors.duration}</span>}
-            </div>
-
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Total Sessions</label>
               <input
@@ -232,9 +209,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
               />
               {errors.sessions && <span className={styles.errorMessage}>{errors.sessions}</span>}
             </div>
-          </div>
 
-          <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Sessions Per Week</label>
               <input
@@ -249,7 +224,6 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             </div>
           </div>
 
-          {/* Description */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Description</label>
             <textarea
@@ -261,7 +235,6 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             />
           </div>
 
-          {/* Workout Days */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               Workout Days <span className={styles.required}>*</span>
@@ -275,7 +248,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
                     className={`${styles.formSelect} ${styles.daySelect}`}
                   >
                     <option value="">Select Day</option>
-                    {dayOptions.map(day => (
+                    {dayOptions.map((day) => (
                       <option key={day} value={day}>{day}</option>
                     ))}
                   </select>
@@ -290,32 +263,24 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
                 />
               </div>
               <textarea
-                placeholder="Exercises (one per line)&#10;e.g., Bench Press · 4 × 8-10"
+                placeholder={'Exercises (one per line)\ne.g., Bench Press · 4 × 8-10'}
                 value={dayInput.exercises}
                 onChange={(e) => setDayInput({ ...dayInput, exercises: e.target.value })}
                 className={`${styles.formTextarea} ${styles.dayExercisesInput}`}
                 rows={3}
               />
-              <button
-                type="button"
-                onClick={handleAddDay}
-                className={styles.addDayBtn}
-              >
-                <Plus size={18} />
-                Add Day
+              <button type="button" onClick={handleAddDay} className={styles.addDayBtn}>
+                <Plus size={18} /> Add Day
               </button>
               {errors.day && <span className={styles.errorMessage}>{errors.day}</span>}
             </div>
 
-            {/* Existing Days */}
             {formData.days.length > 0 && (
               <div className={styles.daysList}>
                 {formData.days.map((day, index) => (
                   <div key={index} className={styles.dayItem}>
                     <div className={styles.dayItemHeader}>
-                      <span className={styles.dayItemTitle}>
-                        {day.day} — {day.focus}
-                      </span>
+                      <span className={styles.dayItemTitle}>{day.day} — {day.focus}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveDay(index)}
@@ -326,9 +291,7 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
                     </div>
                     <div className={styles.dayItemExercises}>
                       {day.exercises.map((exercise, exIndex) => (
-                        <span key={exIndex} className={styles.dayItemExercise}>
-                          {exercise}
-                        </span>
+                        <span key={exIndex} className={styles.dayItemExercise}>{exercise}</span>
                       ))}
                     </div>
                   </div>
@@ -338,11 +301,10 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             )}
           </div>
 
-          {/* Emoji */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Plan Icon</label>
             <div className={styles.emojiGrid}>
-              {emojis.map(emoji => (
+              {emojis.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
@@ -355,13 +317,18 @@ const EditPlanModal = ({ isOpen, onClose, plan, onUpdatePlan }) => {
             </div>
           </div>
 
-          {/* Actions */}
+          {serverError && (
+            <div className={styles.errorMessage} style={{ marginTop: '0.5rem' }}>
+              {serverError}
+            </div>
+          )}
+
           <div className={styles.modalFooter}>
-            <button type="button" className={styles.btnSecondary} onClick={handleClose}>
+            <button type="button" className={styles.btnSecondary} onClick={handleClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className={styles.btnPrimary}>
-              Update Plan
+            <button type="submit" className={styles.btnPrimary} disabled={submitting}>
+              {submitting ? 'Updating…' : 'Update Plan'}
             </button>
           </div>
         </form>
