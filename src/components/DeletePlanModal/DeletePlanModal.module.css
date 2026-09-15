@@ -15,10 +15,7 @@
 
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
@@ -31,7 +28,7 @@
 
 @keyframes overlayIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 .modal {
@@ -44,14 +41,8 @@
 }
 
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* ===== Header ===== */
@@ -89,9 +80,14 @@
   flex-shrink: 0;
 }
 
-.modalClose:hover {
+.modalClose:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
+}
+
+.modalClose:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===== Body ===== */
@@ -205,9 +201,15 @@
   font-family: inherit;
 }
 
-.btnDanger:hover {
+.btnDanger:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.btnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btnSecondary {
@@ -226,52 +228,33 @@
   font-family: inherit;
 }
 
-.btnSecondary:hover {
+.btnSecondary:hover:not(:disabled) {
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
+.btnSecondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 640px) {
-  .modal {
-    max-width: 100%;
-    border-radius: 16px;
-    margin: 0.5rem;
-  }
-
-  .modalHeader {
-    padding: 1.25rem 1.25rem 0.25rem;
-  }
-
-  .modalBody {
-    padding: 0.25rem 1.25rem 1.25rem;
-  }
-
+  .modal { max-width: 100%; border-radius: 16px; margin: 0.5rem; }
+  .modalHeader { padding: 1.25rem 1.25rem 0.25rem; }
+  .modalBody { padding: 0.25rem 1.25rem 1.25rem; }
   .modalFooter {
     padding: 0.75rem 1.25rem 1.25rem;
     flex-direction: column;
   }
-
   .modalFooter .btnDanger,
   .modalFooter .btnSecondary {
     width: 100%;
     justify-content: center;
   }
-
-  .modalTitle {
-    font-size: 1.0625rem;
-  }
-
-  .planPreview {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .planPreviewIcon {
-    font-size: 1.5rem;
-  }
-
-  .warningBox {
-    flex-direction: column;
-    padding: 0.5rem 0.75rem;
-  }
+  .modalTitle { font-size: 1.0625rem; }
+  .planPreview { padding: 0.5rem 0.75rem; }
+  .planPreviewIcon { font-size: 1.5rem; }
+  .warningBox { flex-direction: column; padding: 0.5rem 0.75rem; }
 }
