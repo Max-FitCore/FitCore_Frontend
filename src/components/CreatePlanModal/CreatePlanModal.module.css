@@ -784,3 +784,56 @@
     padding: 0.375rem;
   }
 }
+
+/* ===== Read-only input ===== */
+.formInputReadonly {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: not-allowed;
+}
+
+.formInputReadonly:disabled {
+  opacity: 0.8;
+}
+
+/* ===== Form hint ===== */
+.formHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== Submit error banner ===== */
+.submitError {
+  padding: 0.75rem 1rem;
+  background: var(--error-red-soft);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  color: var(--error-red);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem 0;
+}
+
+/* ===== Disabled buttons ===== */
+.btnPrimary:disabled,
+.btnSecondary:disabled,
+.modalClose:disabled,
+.addDayBtn:disabled,
+.removeDay:disabled,
+.emojiOption:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== Spinner (used by the "Creating…" state) ===== */
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
