@@ -23,7 +23,6 @@ import TrainerDashboard from './components/TrainerDashboard/TrainerDashboard';
 import TrainerMember from './components/TrainerMember/TrainerMember';
 import TrainerWorkouts from './components/TrainerWorkouts/TrainerWorkouts';
 import TrainerSchedule from './components/TrainerSchedule/TrainerSchedule';
-import TrainerAttendance from './components/TrainerAttendance/TrainerAttendance';
 import TrainerProfile from './components/TrainerProfile/TrainerProfile';
 // ===== Admin =====
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
@@ -142,13 +141,6 @@ function AnimatedRoutes({ setIsLoading }) {
           <PageTransition>
             <Layout userRole="trainer" userData={{ name: 'Marcus Vale', role: 'Trainer' }}>
               <TrainerSchedule />
-            </Layout>
-          </PageTransition>
-        } />
-        <Route path="/trainer/attendance" element={
-          <PageTransition>
-            <Layout userRole="trainer" userData={{ name: 'Marcus Vale', role: 'Trainer' }}>
-              <TrainerAttendance />
             </Layout>
           </PageTransition>
         } />
