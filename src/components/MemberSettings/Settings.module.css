@@ -1073,3 +1073,40 @@
 .deactivateConfirm {
   text-align: left;
 }
+
+/* ===== Section Divider (between Profile form and Account grid) ===== */
+.sectionDivider {
+  margin: 2.5rem 0 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sectionDividerTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.sectionDividerSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ===== Account grid: full width (since it's now under Profile) ===== */
+.accountGrid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .accountGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Optional: make account action buttons more balanced ===== */
+.accountActions {
+  flex-wrap: wrap;
+}
