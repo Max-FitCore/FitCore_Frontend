@@ -1,16 +1,16 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Edit2,
   Calendar,
   Trash2,
-  Star,
   Users,
   Check,
   X,
   AlertTriangle,
-  Image as ImageIcon,
   Loader2,
+  Dumbbell,
+  ClipboardList,
 } from 'lucide-react';
 import axios from 'axios';
 import styles from './AdminTrainers.module.css';
@@ -40,7 +40,7 @@ api.interceptors.request.use(
 const adminTrainerService = {
   getAll: async () => {
     const { data } = await api.get('/admin/trainers');
-    return data;
+    return data; // { success, count, data: [...] }
   },
   getById: async (id) => {
     const { data } = await api.get(`/admin/trainers/${id}`);
@@ -63,9 +63,6 @@ const adminTrainerService = {
 /* ============================================================
    BACKEND → UI MAPPER
    ============================================================ */
-const DEFAULT_PHOTO =
-  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-
 const mapFromBackend = (t) => {
   if (!t) return null;
   return {
@@ -78,12 +75,14 @@ const mapFromBackend = (t) => {
     specialty: t.speciality || '—',
     certifications: t.certifications || '',
     availability: t.availability || '',
-    // UI-only fields (not persisted):
-    experience: t.certifications || 'Certified Trainer',
-    rating: 5.0,
-    members: t.stats?.totalBookings ?? 0,
-    photo: t.photo || DEFAULT_PHOTO,
-    stats: t.stats || null,
+    photoUrl: t.profilePicture?.url || '',
+    photoPublicId: t.profilePicture?.publicId || '',
+    isActive: t.isActive !== false,
+    stats: {
+      totalSessions: t.stats?.totalSessions ?? 0,
+      totalWorkoutPlans: t.stats?.totalWorkoutPlans ?? 0,
+      totalBookings: t.stats?.totalBookings ?? 0,
+    },
   };
 };
 
@@ -101,27 +100,24 @@ const Trainers = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [trainerToDelete, setTrainerToDelete] = useState(null);
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [password, setPassword] = useState('');
 
-  const fileInputRef = useRef(null);
+  const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     specialty: '',
-    experience: '',
     phone: '',
     location: '',
     bio: '',
     certifications: '',
     availability: '',
-    rating: 4.5,
-    members: 0,
-    photo: null,
+    isActive: true,
   });
 
   // ============ FETCH ============
@@ -157,34 +153,12 @@ const Trainers = () => {
 
   // ============ FORM ============
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      showToastMessage('Please upload an image file', 'error');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showToastMessage('Image size should be less than 5MB', 'error');
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-    setPhotoPreview(previewUrl);
-    setFormData((prev) => ({ ...prev, photo: file }));
-  };
-
-  const triggerFileInput = () => fileInputRef.current?.click();
-
-  const removePhoto = () => {
-    setPhotoPreview(null);
-    setFormData((prev) => ({ ...prev, photo: null }));
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const resetForm = () => {
@@ -192,18 +166,15 @@ const Trainers = () => {
       name: '',
       email: '',
       specialty: '',
-      experience: '',
       phone: '',
       location: '',
       bio: '',
       certifications: '',
       availability: '',
-      rating: 4.5,
-      members: 0,
-      photo: null,
+      isActive: true,
     });
     setPassword('');
-    setPhotoPreview(null);
+    setFieldErrors({});
   };
 
   // ============ ADD ============
@@ -219,18 +190,16 @@ const Trainers = () => {
     setFormData({
       name: trainer.name || '',
       email: trainer.email || '',
-      specialty: trainer.specialty || '',
-      experience: trainer.experience || '',
+      specialty: trainer.specialty === '—' ? '' : trainer.specialty || '',
       phone: trainer.phone || '',
       location: trainer.location || '',
       bio: trainer.bio || '',
       certifications: trainer.certifications || '',
       availability: trainer.availability || '',
-      rating: trainer.rating || 4.5,
-      members: trainer.members || 0,
-      photo: null,
+      isActive: trainer.isActive !== false,
     });
-    setPhotoPreview(trainer.photo);
+    setPassword('');
+    setFieldErrors({});
     setIsModalOpen(true);
   };
 
@@ -265,62 +234,74 @@ const Trainers = () => {
     setIsDeleteModalOpen(false);
   };
 
+  // ============ VALIDATION ============
+  const validateForm = () => {
+    const errs = {};
+
+    const name = formData.name?.trim() || '';
+    if (!name) errs.name = 'Full name is required';
+    else if (name.length < 2) errs.name = 'Must be at least 2 characters';
+    else if (name.length > 50) errs.name = 'Cannot exceed 50 characters';
+
+    if (!editingTrainer) {
+      const email = formData.email?.trim() || '';
+      if (!email) errs.email = 'Email is required';
+      else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Invalid email';
+
+      if (!password) errs.password = 'Password is required';
+      else if (password.length < 6) errs.password = 'At least 6 characters';
+      else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password))
+        errs.password = 'Must contain 1 uppercase, 1 lowercase, and 1 number';
+    }
+
+    if (formData.bio && formData.bio.length > 500)
+      errs.bio = 'Bio cannot exceed 500 characters';
+    if (formData.certifications && formData.certifications.length > 500)
+      errs.certifications = 'Certifications cannot exceed 500 characters';
+    if (formData.availability && formData.availability.length > 500)
+      errs.availability = 'Availability cannot exceed 500 characters';
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   // ============ SUBMIT ============
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    if (!validateForm()) return;
+
     setSubmitting(true);
 
     try {
       if (editingTrainer) {
         // ---- UPDATE ----
         const payload = {
-          fullName: formData.name?.trim(),
+          fullName: formData.name.trim(),
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
           bio: formData.bio?.trim() || null,
           speciality: formData.specialty?.trim() || null,
           certifications: formData.certifications?.trim() || null,
           availability: formData.availability?.trim() || null,
-          isActive: true,
+          isActive: formData.isActive,
         };
 
         const res = await adminTrainerService.update(editingTrainer.id, payload);
+        const updated = mapFromBackend(res.data); // controller returns { success, data: <user> }
 
-        const updated = {
-          ...mapFromBackend(res.data),
-          rating: formData.rating,
-          members: formData.members,
-          photo: photoPreview || editingTrainer.photo,
-        };
+        // Preserve stats from the previous state (update endpoint doesn't recompute)
+        updated.stats = editingTrainer.stats;
 
         setTrainers((prev) =>
           prev.map((t) => (t.id === editingTrainer.id ? updated : t))
         );
-        showToastMessage(`${formData.name} has been updated successfully`);
+        showToastMessage(`${payload.fullName} has been updated successfully`);
       } else {
         // ---- CREATE ----
-        if (!formData.email?.trim()) {
-          showToastMessage('Email is required', 'error');
-          setSubmitting(false);
-          return;
-        }
-        if (!password || password.length < 6) {
-          showToastMessage('Password must be at least 6 characters', 'error');
-          setSubmitting(false);
-          return;
-        }
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-          showToastMessage(
-            'Password must contain 1 uppercase, 1 lowercase, and 1 number',
-            'error'
-          );
-          setSubmitting(false);
-          return;
-        }
-
         const payload = {
-          fullName: formData.name?.trim(),
-          email: formData.email?.trim(),
+          fullName: formData.name.trim(),
+          email: formData.email.trim(),
           password,
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
@@ -331,21 +312,11 @@ const Trainers = () => {
         };
 
         const res = await adminTrainerService.create(payload);
+        const created = mapFromBackend(res.data);
+        created.stats = { totalSessions: 0, totalWorkoutPlans: 0, totalBookings: 0 };
 
-        const created = {
-          ...mapFromBackend(res.data),
-          rating: formData.rating,
-          members: formData.members,
-          photo: photoPreview || DEFAULT_PHOTO,
-        };
-
-        setTrainers((prev) => [...prev, created]);
+        setTrainers((prev) => [created, ...prev]);
         showToastMessage(`${created.name} has been invited successfully`);
-      }
-
-      // Cleanup blob URL
-      if (photoPreview && photoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(photoPreview);
       }
 
       setIsModalOpen(false);
@@ -365,6 +336,16 @@ const Trainers = () => {
   const handleSchedule = (trainer) => {
     showToastMessage(`Viewing schedule for ${trainer.name}`);
   };
+
+  // ============ AVATAR HELPERS ============
+  const initialsOf = (name = '') =>
+    name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
 
   // ============ RENDER ============
   return (
@@ -389,47 +370,17 @@ const Trainers = () => {
 
       {/* Loading */}
       {loading && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '3rem',
-            color: '#9ca3af',
-            gap: '0.75rem',
-          }}
-        >
-          <Loader2 size={22} className="spin" />
+        <div className={styles.stateMessage}>
+          <Loader2 size={22} className={styles.spin} />
           Loading trainers…
         </div>
       )}
 
       {/* Error */}
       {!loading && error && (
-        <div
-          style={{
-            padding: '1.5rem',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '12px',
-            color: '#ef4444',
-            textAlign: 'center',
-          }}
-        >
+        <div className={styles.stateError}>
           {error}
-          <button
-            onClick={fetchTrainers}
-            style={{
-              marginLeft: '1rem',
-              padding: '0.4rem 1rem',
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
-          >
+          <button className={styles.retryBtn} onClick={fetchTrainers}>
             Retry
           </button>
         </div>
@@ -439,14 +390,7 @@ const Trainers = () => {
       {!loading && !error && (
         <div className={styles.trainersGrid}>
           {trainers.length === 0 ? (
-            <p
-              style={{
-                color: '#6b7280',
-                gridColumn: '1 / -1',
-                textAlign: 'center',
-                padding: '2rem',
-              }}
-            >
+            <p className={styles.emptyNote}>
               No trainers yet. Click "Invite trainer" to add one.
             </p>
           ) : (
@@ -461,34 +405,46 @@ const Trainers = () => {
                 </button>
 
                 <div className={styles.imageContainer}>
-                  <img
-                    src={trainer.photo}
-                    alt={trainer.name}
-                    className={styles.trainerImage}
-                  />
+                  {trainer.photoUrl ? (
+                    <img
+                      src={trainer.photoUrl}
+                      alt={trainer.name}
+                      className={styles.trainerImage}
+                    />
+                  ) : (
+                    <div className={styles.trainerImagePlaceholder}>
+                      {initialsOf(trainer.name)}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.trainerInfo}>
-                  <h3 className={styles.trainerName}>{trainer.name}</h3>
-                  <p className={styles.trainerSpecialty}>
-                    {trainer.specialty}
-                  </p>
-                  <p className={styles.trainerExperience}>
-                    {trainer.experience}
-                  </p>
+                  <div className={styles.nameRow}>
+                    <h3 className={styles.trainerName}>{trainer.name}</h3>
+                    <span
+                      className={`${styles.statusDot} ${
+                        trainer.isActive ? styles.statusActive : styles.statusInactive
+                      }`}
+                      title={trainer.isActive ? 'Active' : 'Inactive'}
+                    />
+                  </div>
+                  <p className={styles.trainerSpecialty}>{trainer.specialty}</p>
+                  {trainer.email && (
+                    <p className={styles.trainerEmail}>{trainer.email}</p>
+                  )}
 
                   <div className={styles.trainerStats}>
-                    <div className={styles.rating}>
-                      <Star
-                        size={16}
-                        className={styles.starIcon}
-                        fill="currentColor"
-                      />
-                      <span>{trainer.rating}</span>
+                    <div className={styles.stat}>
+                      <Calendar size={14} className={styles.statIcon} />
+                      <span>{trainer.stats.totalSessions} sessions</span>
                     </div>
-                    <div className={styles.membersCount}>
-                      <Users size={16} className={styles.userIcon} />
-                      <span>{trainer.members} members</span>
+                    <div className={styles.stat}>
+                      <Dumbbell size={14} className={styles.statIcon} />
+                      <span>{trainer.stats.totalWorkoutPlans} plans</span>
+                    </div>
+                    <div className={styles.stat}>
+                      <Users size={14} className={styles.statIcon} />
+                      <span>{trainer.stats.totalBookings} bookings</span>
                     </div>
                   </div>
 
@@ -504,7 +460,7 @@ const Trainers = () => {
                       className={`${styles.actionBtn} ${styles.scheduleBtn}`}
                       onClick={() => handleSchedule(trainer)}
                     >
-                      <Calendar size={14} style={{ marginRight: '4px' }} />
+                      <ClipboardList size={14} style={{ marginRight: '4px' }} />
                       Schedule
                     </button>
                   </div>
@@ -533,6 +489,7 @@ const Trainers = () => {
                 className={styles.closeBtn}
                 onClick={() => setIsModalOpen(false)}
                 disabled={submitting}
+                type="button"
               >
                 <X size={20} />
               </button>
@@ -541,22 +498,24 @@ const Trainers = () => {
             <form onSubmit={handleSubmit} className={styles.modalForm}>
               {/* Personal Information */}
               <div className={styles.formSection}>
-                <h3 className={styles.formSectionTitle}>
-                  Personal Information
-                </h3>
+                <h3 className={styles.formSectionTitle}>Personal Information</h3>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Full Name *</label>
                   <input
                     type="text"
                     name="name"
-                    className={styles.formInput}
+                    className={`${styles.formInput} ${
+                      fieldErrors.name ? styles.inputError : ''
+                    }`}
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="e.g. John Smith"
-                    required
                     disabled={submitting}
                   />
+                  {fieldErrors.name && (
+                    <span className={styles.errorMessage}>{fieldErrors.name}</span>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -564,13 +523,22 @@ const Trainers = () => {
                   <input
                     type="email"
                     name="email"
-                    className={styles.formInput}
+                    className={`${styles.formInput} ${
+                      fieldErrors.email ? styles.inputError : ''
+                    }`}
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="trainer@example.com"
-                    required
                     disabled={!!editingTrainer || submitting}
                   />
+                  {fieldErrors.email && (
+                    <span className={styles.errorMessage}>{fieldErrors.email}</span>
+                  )}
+                  {editingTrainer && (
+                    <span className={styles.formHint}>
+                      Email cannot be changed after creation.
+                    </span>
+                  )}
                 </div>
 
                 {!editingTrainer && (
@@ -578,13 +546,23 @@ const Trainers = () => {
                     <label className={styles.formLabel}>Password *</label>
                     <input
                       type="password"
-                      className={styles.formInput}
+                      className={`${styles.formInput} ${
+                        fieldErrors.password ? styles.inputError : ''
+                      }`}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password)
+                          setFieldErrors((p) => ({ ...p, password: '' }));
+                      }}
                       placeholder="Min 6 chars, 1 upper, 1 lower, 1 number"
-                      required
                       disabled={submitting}
                     />
+                    {fieldErrors.password && (
+                      <span className={styles.errorMessage}>
+                        {fieldErrors.password}
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -597,6 +575,7 @@ const Trainers = () => {
                       className={styles.formInput}
                       value={formData.phone}
                       onChange={handleInputChange}
+                      placeholder="+20 100 000 0000"
                       disabled={submitting}
                     />
                   </div>
@@ -608,13 +587,14 @@ const Trainers = () => {
                       className={styles.formInput}
                       value={formData.location}
                       onChange={handleInputChange}
+                      placeholder="e.g. Cairo, Egypt"
                       disabled={submitting}
                     />
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Specialty *</label>
+                  <label className={styles.formLabel}>Specialty</label>
                   <input
                     type="text"
                     name="specialty"
@@ -622,7 +602,6 @@ const Trainers = () => {
                     value={formData.specialty}
                     onChange={handleInputChange}
                     placeholder="e.g. Strength & Powerlifting"
-                    required
                     disabled={submitting}
                   />
                 </div>
@@ -631,7 +610,9 @@ const Trainers = () => {
                   <label className={styles.formLabel}>Bio</label>
                   <textarea
                     name="bio"
-                    className={styles.formInput}
+                    className={`${styles.formInput} ${
+                      fieldErrors.bio ? styles.inputError : ''
+                    }`}
                     value={formData.bio}
                     onChange={handleInputChange}
                     placeholder="Short bio (max 500 chars)"
@@ -640,62 +621,35 @@ const Trainers = () => {
                     disabled={submitting}
                     style={{ resize: 'vertical', fontFamily: 'inherit' }}
                   />
+                  {fieldErrors.bio && (
+                    <span className={styles.errorMessage}>{fieldErrors.bio}</span>
+                  )}
                 </div>
               </div>
 
               {/* Professional Details */}
               <div className={styles.formSection}>
-                <h3 className={styles.formSectionTitle}>
-                  Professional Details
-                </h3>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Experience</label>
-                    <input
-                      type="text"
-                      name="experience"
-                      className={styles.formInput}
-                      value={formData.experience}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 5 years"
-                      disabled={submitting}
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Rating</label>
-                    <select
-                      name="rating"
-                      className={styles.formSelect}
-                      value={formData.rating}
-                      onChange={handleInputChange}
-                      disabled={submitting}
-                    >
-                      <option value="5.0">5.0 - Excellent</option>
-                      <option value="4.9">4.9</option>
-                      <option value="4.8">4.8</option>
-                      <option value="4.7">4.7</option>
-                      <option value="4.6">4.6</option>
-                      <option value="4.5">4.5 - Good</option>
-                      <option value="4.0">4.0</option>
-                      <option value="3.5">3.5</option>
-                    </select>
-                  </div>
-                </div>
+                <h3 className={styles.formSectionTitle}>Professional Details</h3>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Certifications</label>
                   <input
                     type="text"
                     name="certifications"
-                    className={styles.formInput}
+                    className={`${styles.formInput} ${
+                      fieldErrors.certifications ? styles.inputError : ''
+                    }`}
                     value={formData.certifications}
                     onChange={handleInputChange}
                     placeholder="e.g. NASM-CPT, ACE"
                     maxLength={500}
                     disabled={submitting}
                   />
+                  {fieldErrors.certifications && (
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.certifications}
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -703,79 +657,53 @@ const Trainers = () => {
                   <input
                     type="text"
                     name="availability"
-                    className={styles.formInput}
+                    className={`${styles.formInput} ${
+                      fieldErrors.availability ? styles.inputError : ''
+                    }`}
                     value={formData.availability}
                     onChange={handleInputChange}
                     placeholder="e.g. Mon-Fri 9am-5pm"
                     maxLength={500}
                     disabled={submitting}
                   />
+                  {fieldErrors.availability && (
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.availability}
+                    </span>
+                  )}
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Current Members</label>
-                  <input
-                    type="number"
-                    name="members"
-                    className={styles.formInput}
-                    value={formData.members}
-                    onChange={handleInputChange}
-                    min="0"
-                    placeholder="0"
-                    disabled={submitting}
-                  />
-                </div>
+                {editingTrainer && (
+                  <div className={styles.highlightToggle}>
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleInputChange}
+                      disabled={submitting}
+                    />
+                    <label htmlFor="isActive">
+                      Active (visible and bookable)
+                    </label>
+                  </div>
+                )}
               </div>
 
-              {/* Photo */}
-              <div className={styles.formSection}>
-                <h3 className={styles.formSectionTitle}>Profile Photo</h3>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Upload Photo</label>
-
-                  <div className={styles.photoUploadContainer}>
-                    {photoPreview ? (
-                      <div className={styles.photoPreviewWrapper}>
-                        <img
-                          src={photoPreview}
-                          alt="Preview"
-                          className={styles.photoPreview}
-                        />
-                        <button
-                          type="button"
-                          className={styles.removePhotoBtn}
-                          onClick={removePhoto}
-                          disabled={submitting}
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        className={styles.photoUploadBox}
-                        onClick={triggerFileInput}
-                      >
-                        <ImageIcon size={40} className={styles.uploadIcon} />
-                        <p className={styles.uploadText}>
-                          Click to upload photo
-                        </p>
-                        <p className={styles.uploadHint}>
-                          PNG, JPG up to 5MB
-                        </p>
-                      </div>
-                    )}
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className={styles.hiddenFileInput}
-                    />
+              {/* Photo — read-only notice */}
+              {editingTrainer && (
+                <div className={styles.formSection}>
+                  <h3 className={styles.formSectionTitle}>Profile Photo</h3>
+                  <div className={styles.photoNotice}>
+                    <p>
+                      Trainers upload their own photo from their profile page.
+                      {editingTrainer.photoUrl
+                        ? ' A photo is currently set.'
+                        : ' No photo uploaded yet.'}
+                    </p>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className={styles.modalActions}>
                 <button
@@ -795,7 +723,7 @@ const Trainers = () => {
                     ? 'Saving…'
                     : editingTrainer
                     ? 'Update Trainer'
-                    : 'Send Invitation'}
+                    : 'Add Trainer'}
                 </button>
               </div>
             </form>
@@ -824,7 +752,9 @@ const Trainers = () => {
 
             <div className={styles.deleteModalWarning}>
               <p>
-                ⚠️ This will affect {trainerToDelete.members} assigned members
+                ⚠️ This will also delete {trainerToDelete.stats.totalSessions}{' '}
+                session(s) and {trainerToDelete.stats.totalWorkoutPlans}{' '}
+                workout plan(s)
               </p>
             </div>
 
