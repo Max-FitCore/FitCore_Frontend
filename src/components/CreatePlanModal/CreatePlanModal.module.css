@@ -457,7 +457,6 @@
   padding-top: 1rem;
   margin-top: 0.5rem;
   border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  position: sticky;
   bottom: 0;
   background: var(--bg-surface, #0b0f12);
   padding-bottom: 0.25rem;
