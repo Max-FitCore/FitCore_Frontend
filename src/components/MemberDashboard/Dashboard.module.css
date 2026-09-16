@@ -698,3 +698,93 @@
     font-size: 0.688rem;
   }
 }
+
+/* ===== Loading / error state ===== */
+.stateMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 3rem 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 16px;
+}
+
+.stateError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  color: var(--error-red);
+  background: var(--error-red-soft);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.retryBtn {
+  padding: 0.4rem 1rem;
+  background: var(--error-red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.813rem;
+}
+
+.retryBtn:hover { filter: brightness(1.1); }
+
+/* ===== Empty card content ===== */
+.emptyCard {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.inlineLink {
+  background: none;
+  border: none;
+  color: var(--accent-lime);
+  cursor: pointer;
+  font-size: inherit;
+  font-weight: 600;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inlineLink:hover { opacity: 0.85; }
+
+/* ===== Membership small meta line ===== */
+.membershipMetaSmall {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 1.25rem 0;
+}
+
+/* ===== Plan sub meta ===== */
+.planSubMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.4rem 0 0 0;
+}
+
+/* ===== Spinner ===== */
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
