@@ -621,3 +621,131 @@
     font-size: 0.75rem;
   }
 }
+
+/* ===== Loading / error state ===== */
+.stateMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 3rem 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 16px;
+}
+
+.stateError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  color: var(--error-red);
+  background: var(--error-red-soft);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.retryBtn {
+  padding: 0.4rem 1rem;
+  background: var(--error-red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.813rem;
+}
+
+.retryBtn:hover { filter: brightness(1.1); }
+
+/* ===== Profile completion badge ===== */
+.profileBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 10px;
+  color: var(--warning-yellow);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.profileBadge:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.55);
+  transform: translateY(-1px);
+}
+
+/* ===== Empty card content ===== */
+.emptyCard {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.inlineLink {
+  background: none;
+  border: none;
+  color: var(--accent-lime);
+  cursor: pointer;
+  font-size: inherit;
+  font-weight: 600;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inlineLink:hover { opacity: 0.85; }
+
+/* ===== Progress sub meta ===== */
+.progressSubMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.4rem 0 0 0;
+}
+
+/* ===== Plan stats row ===== */
+.planStatsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+.planStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* ===== Spinner ===== */
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
