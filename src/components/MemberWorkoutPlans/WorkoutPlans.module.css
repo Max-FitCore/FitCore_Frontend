@@ -1605,3 +1605,221 @@
   border-color: var(--error-red);
   transform: translateY(-1px);
 }
+
+/* ===== State helpers ===== */
+.stateMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2.5rem 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 16px;
+}
+
+.stateError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  color: var(--error-red);
+  background: var(--error-red-soft);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.retryBtn {
+  padding: 0.4rem 1rem;
+  background: var(--error-red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.813rem;
+}
+
+.retryBtn:hover { filter: brightness(1.1); }
+
+/* ===== Plan description ===== */
+.planDescription {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0.75rem 0;
+}
+
+/* ===== Day chips preview ===== */
+.daysPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.dayChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ===== Not-assigned / joined badges ===== */
+.joinedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--success-green-soft);
+  color: var(--success-green);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.notAssignedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ===== Modal description ===== */
+.modalDescriptionText {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+}
+
+/* ===== Workout day blocks in modal ===== */
+.dayBlock {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.dayBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.dayBlockTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dayBlockFocus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-lime);
+  background: var(--accent-lime-soft);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.dayExerciseList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dayExerciseList li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+.dayExerciseList li svg { color: var(--accent-lime); }
+
+.featuresEmpty {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* ===== Rating stars ===== */
+.ratingStars {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.ratingStar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0.25rem;
+  transition: all 0.15s ease;
+  border-radius: 8px;
+}
+
+.ratingStar:hover:not(:disabled) {
+  color: var(--accent-lime);
+  transform: scale(1.15);
+}
+
+.ratingStarActive {
+  color: var(--accent-lime);
+  filter: drop-shadow(0 0 8px rgba(166, 241, 59, 0.5));
+}
+
+.ratingStar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ratingError {
+  padding: 0.65rem 0.9rem;
+  background: var(--error-red-soft);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  color: var(--error-red);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+/* ===== Spinner ===== */
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
+}
