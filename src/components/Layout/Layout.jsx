@@ -165,7 +165,6 @@ const navConfig = {
       { icon: Icons.Members, label: 'My Members', path: '/trainer/members' },
       { icon: Icons.Workout, label: 'Workout Plans', path: '/trainer/workout-plans' },
       { icon: Icons.Schedule, label: 'Schedule', path: '/trainer/schedule' },
-      { icon: Icons.Attendance, label: 'Attendance', path: '/trainer/attendance' },
       { icon: Icons.Profile, label: 'Profile', path: '/trainer/profile' },
     ]
   },
