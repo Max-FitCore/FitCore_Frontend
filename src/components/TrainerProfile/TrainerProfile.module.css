@@ -437,3 +437,69 @@
   from { transform: rotate(0); }
   to { transform: rotate(360deg); }
 }
+
+/* ===== Image busy overlay (upload/delete) ===== */
+.imageBusyOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 7, 10, 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+/* ===== Delete photo button ===== */
+.deletePhotoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.75rem 1rem 0;
+  padding: 0.55rem 0.9rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deletePhotoBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.deletePhotoBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Photo error notice ===== */
+.photoError {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* Remove the old photoNotice if no longer needed, or keep as-is */
+.photoNotice {
+  display: none; /* deprecated */
+}

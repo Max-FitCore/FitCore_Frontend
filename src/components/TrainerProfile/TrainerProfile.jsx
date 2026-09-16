@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, Check, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import styles from './TrainerProfile.module.css';
 
 const API_BASE = 'http://localhost:5000';
@@ -28,6 +28,7 @@ const Profile = () => {
     phone: '',
     location: '',
     photo: '',
+    photoPublicId: '',
     role: '',
     email: '',
   });
@@ -39,12 +40,25 @@ const Profile = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [showToast, setShowToast] = useState(false);
 
+  // Photo-specific state
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+
   const fileInputRef = useRef(null);
 
   const authHeaders = () => {
     const token = localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
+  // For FormData requests — do NOT set Content-Type
+  const authHeadersMultipart = () => {
+    const token = localStorage.getItem('token');
+    return {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   };
@@ -71,7 +85,8 @@ const Profile = () => {
           bio: u.bio || '',
           phone: u.phone || '',
           location: u.location || '',
-          photo: u.avatarUrl || '', // backend doesn't store one — stays empty
+          photo: u.profilePicture?.url || '',
+          photoPublicId: u.profilePicture?.publicId || '',
           role: u.role || '',
           email: u.email || '',
         });
@@ -93,15 +108,139 @@ const Profile = () => {
     if (saveError) setSaveError('');
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setProfileData((prev) => ({ ...prev, photo: objectUrl }));
+  const triggerFileInput = () => {
+    if (uploadingPhoto || deletingPhoto) return;
+    fileInputRef.current?.click();
+  };
+
+  /* ---------- Upload photo to Cloudinary via backend ---------- */
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so selecting the same file again re-triggers change
+    e.target.value = '';
+
+    // Basic client-side guards
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please select an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image must be smaller than 5 MB.');
+      return;
+    }
+
+    setPhotoError('');
+    setUploadingPhoto(true);
+
+    // Optimistic local preview
+    const localPreview = URL.createObjectURL(file);
+    const previousPhoto = profileData.photo;
+    setProfileData((prev) => ({ ...prev, photo: localPreview }));
+
+    try {
+      const formData = new FormData();
+      // 👇 CHANGE THIS IF YOUR BACKEND EXPECTS A DIFFERENT FIELD NAME
+      //    (must match `upload.single('...')` in your route file)
+      formData.append('profilePicture', file);
+
+      const res = await fetch(`${API_BASE}/api/profile/upload-picture`, {
+        method: 'POST',
+        headers: authHeadersMultipart(),
+        body: formData,
+      });
+      const data = await parseResponse(res);
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Upload failed (${res.status})`);
+      }
+
+      // Backend returns { data: { profilePicture: { url, publicId }, user } }
+      const pic = data.data?.profilePicture || {};
+      setProfileData((prev) => ({
+        ...prev,
+        photo: pic.url || prev.photo,
+        photoPublicId: pic.publicId || '',
+      }));
+
+      // Sync localStorage user
+      syncLocalStorage(data.data?.user);
+
+      setShowToast(true);
+    } catch (err) {
+      setPhotoError(err.message || 'Failed to upload photo');
+      // Revert optimistic preview
+      setProfileData((prev) => ({ ...prev, photo: previousPhoto }));
+    } finally {
+      URL.revokeObjectURL(localPreview);
+      setUploadingPhoto(false);
     }
   };
 
-  const triggerFileInput = () => fileInputRef.current?.click();
+  /* ---------- Delete photo ---------- */
+  const handleDeletePhoto = async () => {
+    if (uploadingPhoto || deletingPhoto) return;
+    if (!profileData.photoPublicId) return;
+
+    setPhotoError('');
+    setDeletingPhoto(true);
+
+    const previousPhoto = profileData.photo;
+    const previousPublicId = profileData.photoPublicId;
+    // Optimistic clear
+    setProfileData((prev) => ({ ...prev, photo: '', photoPublicId: '' }));
+
+    try {
+      const res = await fetch(`${API_BASE}/api/profile/delete-picture`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await parseResponse(res);
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Delete failed (${res.status})`);
+      }
+
+      // Update localStorage
+      try {
+        const raw = localStorage.getItem('user');
+        if (raw) {
+          const cached = JSON.parse(raw);
+          localStorage.setItem(
+            'user',
+            JSON.stringify({ ...cached, profilePicture: { url: null, publicId: null } })
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+
+      setShowToast(true);
+    } catch (err) {
+      setPhotoError(err.message || 'Failed to delete photo');
+      // Revert
+      setProfileData((prev) => ({
+        ...prev,
+        photo: previousPhoto,
+        photoPublicId: previousPublicId,
+      }));
+    } finally {
+      setDeletingPhoto(false);
+    }
+  };
+
+  /* ---------- localStorage sync helper ---------- */
+  const syncLocalStorage = (serverUser) => {
+    if (!serverUser) return;
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        const cached = JSON.parse(raw);
+        localStorage.setItem('user', JSON.stringify({ ...cached, ...serverUser }));
+      }
+    } catch {
+      /* ignore storage errors */
+    }
+  };
 
   /* ---------- Client-side validation (mirrors backend rules) ---------- */
   const validate = () => {
@@ -158,7 +297,6 @@ const Profile = () => {
         throw new Error(data.message || `Failed to update profile (${res.status})`);
       }
 
-      // Keep the form in sync with what the server actually saved
       const u = data.data || {};
       setProfileData((prev) => ({
         ...prev,
@@ -173,20 +311,7 @@ const Profile = () => {
         email: u.email ?? prev.email,
       }));
 
-      // Refresh localStorage so other pages pick up the new name
-      try {
-        const raw = localStorage.getItem('user');
-        if (raw) {
-          const cached = JSON.parse(raw);
-          localStorage.setItem(
-            'user',
-            JSON.stringify({ ...cached, ...u })
-          );
-        }
-      } catch {
-        /* ignore storage errors */
-      }
-
+      syncLocalStorage(u);
       setShowToast(true);
     } catch (err) {
       setSaveError(err.message || 'Failed to update profile');
@@ -226,6 +351,8 @@ const Profile = () => {
     );
   }
 
+  const photoBusy = uploadingPhoto || deletingPhoto;
+
   return (
     <div className={styles.profilePage}>
       <div className={styles.header}>
@@ -248,12 +375,36 @@ const Profile = () => {
                 {(profileData.fullName || '?').charAt(0).toUpperCase()}
               </div>
             )}
-            <div className={styles.imageOverlay}>
-              <Camera size={24} />
-              <span>Change photo</span>
-              <span className={styles.imageNote}>Preview only</span>
-            </div>
+
+            {/* Busy overlay */}
+            {photoBusy && (
+              <div className={styles.imageBusyOverlay}>
+                <Loader2 size={28} className={styles.spinner} />
+                <span>{uploadingPhoto ? 'Uploading…' : 'Removing…'}</span>
+              </div>
+            )}
+
+            {/* Hover overlay (hidden while busy) */}
+            {!photoBusy && (
+              <div className={styles.imageOverlay}>
+                <Camera size={24} />
+                <span>Change photo</span>
+              </div>
+            )}
           </div>
+
+          {/* Delete button — only when there's a stored photo */}
+          {profileData.photoPublicId && !photoBusy && (
+            <button
+              type="button"
+              className={styles.deletePhotoBtn}
+              onClick={handleDeletePhoto}
+              disabled={deletingPhoto}
+            >
+              <Trash2 size={14} />
+              Remove photo
+            </button>
+          )}
 
           <input
             type="file"
@@ -273,10 +424,13 @@ const Profile = () => {
             {profileData.email && (
               <p className={styles.profileEmail}>{profileData.email}</p>
             )}
-            <div className={styles.photoNotice}>
-              <AlertCircle size={13} />
-              <span>Photo is a local preview — not saved to the server.</span>
-            </div>
+
+            {photoError && (
+              <div className={styles.photoError}>
+                <AlertCircle size={13} />
+                <span>{photoError}</span>
+              </div>
+            )}
           </div>
         </div>
 
