@@ -1,5 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Star, ArrowRight, UserCheck, Dumbbell, BarChart3, CalendarCheck, QrCode, CreditCard, User, LogOut, ChevronDown, LayoutDashboard, Users, Calendar, Settings, CreditCard as CreditCardIcon } from 'lucide-react';
+import {
+  Star,
+  ArrowRight,
+  UserCheck,
+  Dumbbell,
+  BarChart3,
+  CalendarCheck,
+  QrCode,
+  CreditCard,
+  User,
+  LogOut,
+  ChevronDown,
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Settings,
+  CreditCard as CreditCardIcon,
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../../assets/hero-gym.jpg';
 import co1 from '../../assets/Co1.jpg';
@@ -8,117 +25,36 @@ import co3 from '../../assets/Co3.jpg';
 import styles from './Home.module.css';
 
 const trainers = [
-  {
-    name: 'Marcus Reid',
-    specialty: 'Strength & Conditioning',
-    experience: '9 yrs experience',
-    rating: '4.9',
-    image: co1,
-  },
-  {
-    name: 'Elena Cho',
-    specialty: 'Mobility & Recovery',
-    experience: '6 yrs experience',
-    rating: '4.8',
-    image: co2,
-  },
-  {
-    name: 'Jordan Blake',
-    specialty: 'HIIT & Fat Loss',
-    experience: '7 yrs experience',
-    rating: '5.0',
-    image: co3,
-  },
+  { name: 'Marcus Reid', specialty: 'Strength & Conditioning', experience: '9 yrs experience', rating: '4.9', image: co1 },
+  { name: 'Elena Cho', specialty: 'Mobility & Recovery', experience: '6 yrs experience', rating: '4.8', image: co2 },
+  { name: 'Jordan Blake', specialty: 'HIIT & Fat Loss', experience: '7 yrs experience', rating: '5.0', image: co3 },
 ];
 
 const testimonials = [
-  {
-    quote: 'Booking classes used to be a hassle. Now I see live spots and confirm in seconds.',
-    name: 'Priya Nandan',
-    role: 'Premium member, 8 months',
-  },
-  {
-    quote: 'My trainer updates my plan every week and I can see exactly what changed.',
-    name: 'Daniel Ostrowski',
-    role: 'VIP member, 1 year',
-  },
-  {
-    quote: 'The attendance tracking keeps me honest. I can see my consistency at a glance.',
-    name: 'Aisha Bello',
-    role: 'Basic member, 4 months',
-  },
+  { quote: 'Booking classes used to be a hassle. Now I see live spots and confirm in seconds.', name: 'Priya Nandan', role: 'Premium member, 8 months' },
+  { quote: 'My trainer updates my plan every week and I can see exactly what changed.', name: 'Daniel Ostrowski', role: 'VIP member, 1 year' },
+  { quote: 'The attendance tracking keeps me honest. I can see my consistency at a glance.', name: 'Aisha Bello', role: 'Basic member, 4 months' },
 ];
 
 const features = [
-  {
-    icon: UserCheck,
-    title: 'Membership Management',
-    description: 'Plans, renewals, expiry alerts and upgrades handled without paperwork.',
-  },
-  {
-    icon: Dumbbell,
-    title: 'Personal Training',
-    description: 'Match members with coaches and track every session in one timeline.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Workout Programs',
-    description: 'Structured multi-week blocks with sets, reps, rest and completion tracking.',
-  },
-  {
-    icon: CalendarCheck,
-    title: 'Class Booking',
-    description: 'Live capacity, waitlists and instant confirmation across every studio.',
-  },
-  {
-    icon: QrCode,
-    title: 'Attendance Management',
-    description: 'QR check-in at the door with full visit history per member.',
-  },
-  {
-    icon: CreditCard,
-    title: 'Payments & Revenue',
-    description: 'Invoices, payment status and revenue analytics for the whole gym.',
-  },
+  { icon: UserCheck, title: 'Membership Management', description: 'Plans, renewals, expiry alerts and upgrades handled without paperwork.' },
+  { icon: Dumbbell, title: 'Personal Training', description: 'Match members with coaches and track every session in one timeline.' },
+  { icon: BarChart3, title: 'Workout Programs', description: 'Structured multi-week blocks with sets, reps, rest and completion tracking.' },
+  { icon: CalendarCheck, title: 'Class Booking', description: 'Live capacity, waitlists and instant confirmation across every studio.' },
+  { icon: QrCode, title: 'Attendance Management', description: 'QR check-in at the door with full visit history per member.' },
+  { icon: CreditCard, title: 'Payments & Revenue', description: 'Invoices, payment status and revenue analytics for the whole gym.' },
 ];
 
 const plans = [
-  {
-    name: 'Basic',
-    description: 'Everything you need to start moving.',
-    price: '29',
-    features: ['Full gym floor access', '2 group classes / month', 'Attendance tracking', 'Mobile app access'],
-    featured: false,
-  },
-  {
-    name: 'Premium',
-    description: 'Structured training with real coaching.',
-    price: '59',
-    features: [
-      'Unlimited gym access',
-      'Unlimited group classes',
-      'Personalised workout plans',
-      'Monthly progress review',
-      'Nutrition guidance',
-    ],
-    featured: true,
-  },
-  {
-    name: 'VIP',
-    description: 'One-to-one performance programming.',
-    price: '119',
-    features: [
-      'Everything in Premium',
-      '8 personal training sessions',
-      'Priority class booking',
-      'Body composition scans',
-      'Recovery & sauna suite',
-    ],
-    featured: false,
-  },
+  { name: 'Basic', description: 'Everything you need to start moving.', price: '29', features: ['Full gym floor access', '2 group classes / month', 'Attendance tracking', 'Mobile app access'], featured: false },
+  { name: 'Premium', description: 'Structured training with real coaching.', price: '59', features: ['Unlimited gym access', 'Unlimited group classes', 'Personalised workout plans', 'Monthly progress review', 'Nutrition guidance'], featured: true },
+  { name: 'VIP', description: 'One-to-one performance programming.', price: '119', features: ['Everything in Premium', '8 personal training sessions', 'Priority class booking', 'Body composition scans', 'Recovery & sauna suite'], featured: false },
 ];
 
-// Navigation items by role
+/* ============================================================
+   NAVIGATION BY ROLE
+   Paths MUST match the ones used in Layout.jsx and App routes
+   ============================================================ */
 const navigationByRole = {
   member: [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -148,26 +84,73 @@ const navigationByRole = {
   ],
 };
 
-// Helper function to get user from localStorage
+/* ============================================================
+   NORMALIZE ROLE
+   Handles: "Admin", "ADMIN", "admin", "admin_role", "administrator"
+   ============================================================ */
+const normalizeRole = (rawRole) => {
+  if (!rawRole) return 'member';
+  const r = String(rawRole).toLowerCase().trim();
+
+  if (r.includes('admin') || r.includes('administrator')) return 'admin';
+  if (r.includes('trainer') || r.includes('coach')) return 'trainer';
+  if (r.includes('member') || r.includes('user') || r.includes('client')) return 'member';
+
+  return 'member';
+};
+
+/* ============================================================
+   GET USER FROM STORAGE
+   Tries multiple sources: fitcore_user, user, token (JWT)
+   ============================================================ */
 const getUserFromStorage = () => {
   try {
-    const userData = localStorage.getItem('fitcore_user');
-    if (userData) {
-      return JSON.parse(userData);
+    // 1) Dedicated key
+    const raw = localStorage.getItem('fitcore_user') || localStorage.getItem('user');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        // Some apps store { data: { ...user } }
+        const u = parsed?.data ? parsed.data : parsed;
+        if (u && (u.role || u.userRole || u.type)) {
+          const role = normalizeRole(u.role || u.userRole || u.type);
+          return {
+            ...u,
+            name: u.name || u.fullName || u.username || u.email || 'User',
+            role,
+          };
+        }
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+
+    // 2) Decode JWT token
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = normalizeRole(payload.role || payload.userRole || payload.type);
+        return {
+          ...payload,
+          name: payload.name || payload.fullName || payload.username || payload.email || 'User',
+          role,
+        };
+      } catch (e) {
+        console.error('Failed to decode token:', e);
+      }
     }
   } catch (e) {
-    console.error('Error reading user data:', e);
+    console.error('Error reading user from storage:', e);
   }
   return null;
 };
 
 export default function HomePage() {
-  // Read user from localStorage on mount
   const [user, setUser] = useState(() => getUserFromStorage());
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
-  // Refs for scroll animations
+
   const featuresRef = useRef(null);
   const plansRef = useRef(null);
   const trainersRef = useRef(null);
@@ -175,58 +158,44 @@ export default function HomePage() {
   const ctaRef = useRef(null);
   const navigate = useNavigate();
 
-  // Listen for storage changes (in case user signs in/out in another tab)
+  // Sync across tabs
   useEffect(() => {
-    const handleStorageChange = () => {
-      setUser(getUserFromStorage());
-    };
-
+    const handleStorageChange = () => setUser(getUserFromStorage());
     window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle sign out
+  // Sign out
   const handleSignOut = () => {
     localStorage.removeItem('fitcore_user');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
     setIsDropdownOpen(false);
     navigate('/');
   };
 
-  // Handle navigation from dropdown
   const handleNavigation = (path) => {
     setIsDropdownOpen(false);
     navigate(path);
   };
 
-  // Get user initials for avatar
   const getInitials = (name) => {
     if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Get dashboard path based on role
   const getDashboardPath = () => {
     if (!user) return '/dashboard';
     if (user.role === 'trainer') return '/trainer/overview';
@@ -234,40 +203,36 @@ export default function HomePage() {
     return '/dashboard';
   };
 
-  // Smooth scroll function
   const smoothScrollTo = (elementRef) => {
     if (elementRef.current) {
-      elementRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      elementRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  // Intersection Observer for fade-in animations
+  // Scroll animations
   useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px',
-    };
-
+    const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add(styles.visible);
-        }
+        if (entry.isIntersecting) entry.target.classList.add(styles.visible);
       });
     }, observerOptions);
 
     const sections = document.querySelectorAll(`.${styles.animateOnScroll}`);
     sections.forEach((section) => observer.observe(section));
-
-    return () => {
-      sections.forEach((section) => observer.unobserve(section));
-    };
+    return () => sections.forEach((section) => observer.unobserve(section));
   }, []);
 
+  // Debug log - remove in production
+  useEffect(() => {
+    if (user) {
+      console.log('[Home] user role:', user.role);
+      console.log('[Home] nav items:', navigationByRole[user.role]?.length || 0);
+    }
+  }, [user]);
+
   const navigationItems = user ? navigationByRole[user.role] || [] : [];
+  const roleLabel = user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '';
 
   return (
     <div className={styles.page}>
@@ -281,96 +246,71 @@ export default function HomePage() {
             Fit<span className={styles.accent}>Core</span>
           </span>
         </Link>
-        
+
         <nav className={styles.navLinks}>
-          <a 
-            href="#features" 
-            onClick={(e) => { e.preventDefault(); smoothScrollTo(featuresRef); }}
-          >
-            Features
-          </a>
-          <a 
-            href="#plans" 
-            onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
-          >
-            Plans
-          </a>
-          <a 
-            href="#trainers" 
-            onClick={(e) => { e.preventDefault(); smoothScrollTo(trainersRef); }}
-          >
-            Trainers
-          </a>
-          <a 
-            href="#testimonials" 
-            onClick={(e) => { e.preventDefault(); smoothScrollTo(testimonialsRef); }}
-          >
-            Testimonials
-          </a>
+          <a href="#features" onClick={(e) => { e.preventDefault(); smoothScrollTo(featuresRef); }}>Features</a>
+          <a href="#plans" onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}>Plans</a>
+          <a href="#trainers" onClick={(e) => { e.preventDefault(); smoothScrollTo(trainersRef); }}>Trainers</a>
+          <a href="#testimonials" onClick={(e) => { e.preventDefault(); smoothScrollTo(testimonialsRef); }}>Testimonials</a>
         </nav>
-        
+
         <div className={styles.navActions}>
           {!user ? (
             <>
-              <Link to="/sign-in" className={styles.signIn}>
-                Sign in
-              </Link>
-              <Link to="/sign-up" className={styles.primaryBtn}>
-                Join now
-              </Link>
+              <Link to="/sign-in" className={styles.signIn}>Sign in</Link>
+              <Link to="/sign-up" className={styles.primaryBtn}>Join now</Link>
             </>
           ) : (
             <div className={styles.userMenu} ref={dropdownRef}>
-              <button 
+              <button
                 className={styles.userButton}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                aria-haspopup="true"
+                aria-expanded={isDropdownOpen}
               >
-                <div className={styles.userAvatar}>
-                  {getInitials(user.name)}
-                </div>
+                <div className={styles.userAvatar}>{getInitials(user.name)}</div>
                 <span className={styles.userName}>{user.name}</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`${styles.chevron} ${isDropdownOpen ? styles.chevronOpen : ''}`} 
-                />
+                <ChevronDown size={16} className={`${styles.chevron} ${isDropdownOpen ? styles.chevronOpen : ''}`} />
               </button>
-              
+
               {isDropdownOpen && (
                 <div className={styles.dropdownMenu}>
                   <div className={styles.dropdownHeader}>
-                    <div className={styles.dropdownAvatar}>
-                      {getInitials(user.name)}
-                    </div>
+                    <div className={styles.dropdownAvatar}>{getInitials(user.name)}</div>
                     <div className={styles.dropdownUserInfo}>
                       <span className={styles.dropdownUserName}>{user.name}</span>
                       <span className={styles.dropdownUserRole}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        {roleLabel}
                         {user.plan && ` · ${user.plan}`}
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className={styles.dropdownDivider} />
-                  
-                  <nav className={styles.dropdownNav}>
-                    {navigationItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <button
-                          key={item.path}
-                          className={styles.dropdownItem}
-                          onClick={() => handleNavigation(item.path)}
-                        >
-                          <Icon size={16} className={styles.dropdownIcon} />
-                          <span>{item.name}</span>
-                        </button>
-                      );
-                    })}
-                  </nav>
-                  
-                  <div className={styles.dropdownDivider} />
-                  
-                  <button 
+
+                  {/* Navigation list — same for member, trainer, admin */}
+                  {navigationItems.length > 0 && (
+                    <>
+                      <nav className={styles.dropdownNav}>
+                        {navigationItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.path}
+                              className={styles.dropdownItem}
+                              onClick={() => handleNavigation(item.path)}
+                            >
+                              <Icon size={16} className={styles.dropdownIcon} />
+                              <span>{item.name}</span>
+                            </button>
+                          );
+                        })}
+                      </nav>
+                      <div className={styles.dropdownDivider} />
+                    </>
+                  )}
+
+                  <button
                     className={`${styles.dropdownItem} ${styles.logoutItem}`}
                     onClick={handleSignOut}
                   >
@@ -407,36 +347,20 @@ export default function HomePage() {
                 <Link to="/sign-up" className={styles.primaryBtnLg}>
                   Join now <ArrowRight size={18} />
                 </Link>
-                <a 
-                  href="#plans" 
-                  className={styles.secondaryBtnLg}
-                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
-                >
+                <a href="#plans" className={styles.secondaryBtnLg} onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}>
                   Explore plans
                 </a>
               </>
             ) : (
-              <button 
-                className={styles.primaryBtnLg}
-                onClick={() => handleNavigation(getDashboardPath())}
-              >
+              <button className={styles.primaryBtnLg} onClick={() => handleNavigation(getDashboardPath())}>
                 Go to Dashboard <ArrowRight size={18} />
               </button>
             )}
           </div>
           <div className={styles.statsRow}>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>351</span>
-              <span className={styles.statLabel}>Active members</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>18</span>
-              <span className={styles.statLabel}>Expert trainers</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statNumber}>42</span>
-              <span className={styles.statLabel}>Weekly programs</span>
-            </div>
+            <div className={styles.stat}><span className={styles.statNumber}>351</span><span className={styles.statLabel}>Active members</span></div>
+            <div className={styles.stat}><span className={styles.statNumber}>18</span><span className={styles.statLabel}>Expert trainers</span></div>
+            <div className={styles.stat}><span className={styles.statNumber}>42</span><span className={styles.statLabel}>Weekly programs</span></div>
           </div>
         </div>
         <div className={styles.heroVisual}>
@@ -454,25 +378,15 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section 
-        id="features" 
-        ref={featuresRef}
-        className={`${styles.features} ${styles.animateOnScroll}`}
-      >
+      <section id="features" ref={featuresRef} className={`${styles.features} ${styles.animateOnScroll}`}>
         <div className={styles.sectionHeading}>
           <h2>One platform for the whole gym floor</h2>
           <p>Everything a modern gym runs on, designed for members, trainers and administrators alike.</p>
         </div>
         <div className={styles.featuresGrid}>
           {features.map(({ icon: Icon, title, description }, index) => (
-            <div 
-              key={title} 
-              className={`${styles.featureCard} ${styles.animateCard}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <span className={styles.featureIcon}>
-                <Icon size={20} strokeWidth={2} />
-              </span>
+            <div key={title} className={`${styles.featureCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.1}s` }}>
+              <span className={styles.featureIcon}><Icon size={20} strokeWidth={2} /></span>
               <h3>{title}</h3>
               <p>{description}</p>
             </div>
@@ -480,45 +394,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Membership Plans */}
-      <section 
-        id="plans" 
-        ref={plansRef}
-        className={`${styles.plans} ${styles.animateOnScroll}`}
-      >
+      {/* Plans */}
+      <section id="plans" ref={plansRef} className={`${styles.plans} ${styles.animateOnScroll}`}>
         <div className={styles.sectionHeading}>
           <h2>Membership plans</h2>
           <p>Transparent pricing. Cancel or upgrade any time from your dashboard.</p>
         </div>
         <div className={styles.plansGrid}>
           {plans.map((plan, index) => (
-            <div
-              key={plan.name}
-              className={`${styles.planCard} ${plan.featured ? styles.planCardFeatured : ''} ${styles.animateCard}`}
-              style={{ animationDelay: `${index * 0.15}s` }}
-            >
+            <div key={plan.name} className={`${styles.planCard} ${plan.featured ? styles.planCardFeatured : ''} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.15}s` }}>
               {plan.featured && <span className={styles.popularBadge}>Most popular</span>}
               <h3 className={styles.planName}>{plan.name}</h3>
               <p className={styles.planDescription}>{plan.description}</p>
-              <p className={styles.planPrice}>
-                ${plan.price}
-                <span className={styles.planPeriod}>/mo</span>
-              </p>
-              <ul className={styles.planFeatures}>
-                {plan.features.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+              <p className={styles.planPrice}>${plan.price}<span className={styles.planPeriod}>/mo</span></p>
+              <ul className={styles.planFeatures}>{plan.features.map((item) => (<li key={item}>{item}</li>))}</ul>
               <button
                 type="button"
                 className={plan.featured ? styles.primaryBtn : styles.secondaryBtn}
-                onClick={() => {
-                  if (user) {
-                    handleNavigation('/membership');
-                  } else {
-                    navigate('/sign-in');
-                  }
-                }}
+                onClick={() => { if (user) handleNavigation('/membership'); else navigate('/sign-in'); }}
               >
                 {user ? 'Choose plan' : 'Join now'}
               </button>
@@ -528,38 +421,23 @@ export default function HomePage() {
       </section>
 
       {/* Trainers */}
-      <section 
-        id="trainers" 
-        ref={trainersRef}
-        className={`${styles.trainers} ${styles.animateOnScroll}`}
-      >
+      <section id="trainers" ref={trainersRef} className={`${styles.trainers} ${styles.animateOnScroll}`}>
         <div className={styles.sectionHeading}>
           <h2>Train with people who show up for you</h2>
           <p>Certified coaches across strength, mobility, and conditioning — matched to your goals.</p>
         </div>
         <div className={styles.trainersGrid}>
           {trainers.map((trainer, index) => (
-            <div 
-              key={trainer.name} 
-              className={`${styles.trainerCard} ${styles.animateCard}`}
-              style={{ animationDelay: `${index * 0.12}s` }}
-            >
-              <div className={styles.trainerImage}>
-                <img src={trainer.image} alt={trainer.name} />
-              </div>
+            <div key={trainer.name} className={`${styles.trainerCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.12}s` }}>
+              <div className={styles.trainerImage}><img src={trainer.image} alt={trainer.name} /></div>
               <div className={styles.trainerInfo}>
                 <div className={styles.trainerHeader}>
                   <h3>{trainer.name}</h3>
-                  <span className={styles.trainerRating}>
-                    <Star size={13} fill="currentColor" />
-                    {trainer.rating}
-                  </span>
+                  <span className={styles.trainerRating}><Star size={13} fill="currentColor" />{trainer.rating}</span>
                 </div>
                 <p className={styles.trainerSpecialty}>{trainer.specialty}</p>
                 <p className={styles.trainerExperience}>{trainer.experience}</p>
-                <button type="button" className={styles.secondaryBtn}>
-                  View profile
-                </button>
+                <button type="button" className={styles.secondaryBtn}>View profile</button>
               </div>
             </div>
           ))}
@@ -567,64 +445,40 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section 
-        id="testimonials" 
-        ref={testimonialsRef}
-        className={`${styles.testimonials} ${styles.animateOnScroll}`}
-      >
+      <section id="testimonials" ref={testimonialsRef} className={`${styles.testimonials} ${styles.animateOnScroll}`}>
         <div className={styles.sectionHeading}>
           <h2>What members are saying</h2>
           <p>Real feedback from people training on FitCore every week.</p>
         </div>
         <div className={styles.testimonialsGrid}>
-          {testimonials.map((testimonial, index) => (
-            <div 
-              key={testimonial.name} 
-              className={`${styles.testimonialCard} ${styles.animateCard}`}
-              style={{ animationDelay: `${index * 0.12}s` }}
-            >
+          {testimonials.map((t, index) => (
+            <div key={t.name} className={`${styles.testimonialCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.12}s` }}>
               <div className={styles.testimonialStars}>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={14} fill="currentColor" />
-                ))}
+                {Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={14} fill="currentColor" />))}
               </div>
-              <p className={styles.testimonialQuote}>&ldquo;{testimonial.quote}&rdquo;</p>
+              <p className={styles.testimonialQuote}>&ldquo;{t.quote}&rdquo;</p>
               <div className={styles.testimonialAuthor}>
-                <p className={styles.testimonialName}>{testimonial.name}</p>
-                <p className={styles.testimonialRole}>{testimonial.role}</p>
+                <p className={styles.testimonialName}>{t.name}</p>
+                <p className={styles.testimonialRole}>{t.role}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section 
-        ref={ctaRef}
-        className={`${styles.ctaSection} ${styles.animateOnScroll}`}
-      >
+      {/* CTA */}
+      <section ref={ctaRef} className={`${styles.ctaSection} ${styles.animateOnScroll}`}>
         <div className={styles.ctaCard}>
           <h2>Ready to train with intent?</h2>
           <p>Create your account and get matched with a plan and trainer in minutes.</p>
           <div className={styles.heroActions}>
             {!user ? (
               <>
-                <Link to="/sign-up" className={styles.primaryBtnLg}>
-                  Join now <ArrowRight size={18} />
-                </Link>
-                <a 
-                  href="#plans" 
-                  className={styles.secondaryBtnLg}
-                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
-                >
-                  Explore plans
-                </a>
+                <Link to="/sign-up" className={styles.primaryBtnLg}>Join now <ArrowRight size={18} /></Link>
+                <a href="#plans" className={styles.secondaryBtnLg} onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}>Explore plans</a>
               </>
             ) : (
-              <button 
-                className={styles.primaryBtnLg}
-                onClick={() => handleNavigation(getDashboardPath())}
-              >
+              <button className={styles.primaryBtnLg} onClick={() => handleNavigation(getDashboardPath())}>
                 Go to Dashboard <ArrowRight size={18} />
               </button>
             )}
@@ -635,12 +489,8 @@ export default function HomePage() {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.logo}>
-          <span className={styles.logoMark}>
-            <Dumbbell size={16} strokeWidth={2.5} />
-          </span>
-          <span className={styles.logoText}>
-            Fit<span className={styles.accent}>Core</span>
-          </span>
+          <span className={styles.logoMark}><Dumbbell size={16} strokeWidth={2.5} /></span>
+          <span className={styles.logoText}>Fit<span className={styles.accent}>Core</span></span>
         </div>
         <p className={styles.footerText}>© {new Date().getFullYear()} FitCore. All rights reserved.</p>
       </footer>

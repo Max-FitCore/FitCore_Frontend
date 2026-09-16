@@ -86,7 +86,7 @@
 .navActions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .signIn {
@@ -467,13 +467,49 @@
 .trainerImage {
   aspect-ratio: 4 / 3;
   overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--bg-surface) 100%);
 }
 
 .trainerImage img {
   width: 100%;
-  height: 100%;
+  height: 130%;
   object-fit: cover;
   display: block;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+  filter: brightness(0.95) contrast(1.05);
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-alt) 0%,
+    var(--bg-surface) 50%,
+    var(--bg-surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.trainerCard:hover .trainerImage img {
+  transform: scale(1.08);
+  filter: brightness(1) contrast(1.1);
+}
+
+.trainerImage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(5, 7, 10, 0.4) 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.trainerCard:hover .trainerImage::after {
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .trainerInfo {
@@ -617,490 +653,6 @@
   margin: 0;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 1024px) {
-  .navbar,
-  .hero,
-  .features,
-  .plans {
-    padding-left: 32px;
-    padding-right: 32px;
-  }
-
-  .hero {
-    grid-template-columns: 1fr;
-    padding-top: 48px;
-  }
-
-  .heroTitle {
-    font-size: 44px;
-  }
-
-  .featuresGrid,
-  .plansGrid,
-  .trainersGrid,
-  .testimonialsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer {
-    padding-left: 32px;
-    padding-right: 32px;
-  }
-}
-
-@media (max-width: 640px) {
-  .navLinks {
-    display: none;
-  }
-
-  .heroActions {
-    flex-direction: column;
-  }
-
-  .statsRow {
-    gap: 28px;
-    flex-wrap: wrap;
-  }
-}
-/* ===== Smooth Scroll Animations ===== */
-
-/* Base animation class - sections fade in when visible */
-.animateOnScroll {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animateOnScroll.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Individual card animations with staggered delays */
-.animateCard {
-  opacity: 0;
-  transform: translateY(30px) scale(0.98);
-  animation: cardFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  animation-play-state: paused;
-}
-
-.visible .animateCard {
-  animation-play-state: running;
-}
-
-@keyframes cardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Hero section subtle entrance */
-.hero {
-  animation: heroFadeIn 1s ease-out;
-}
-
-@keyframes heroFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Stats row staggered entrance */
-.stat {
-  opacity: 0;
-  animation: statFadeIn 0.6s ease-out forwards;
-}
-
-.stat:nth-child(1) { animation-delay: 0.2s; }
-.stat:nth-child(2) { animation-delay: 0.4s; }
-.stat:nth-child(3) { animation-delay: 0.6s; }
-
-@keyframes statFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Badge pulse animation */
-.badge {
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Smooth scroll behavior for the whole page */
-.page {
-  scroll-behavior: smooth;
-}
-
-/* Navbar link hover underline effect */
-.navLinks a {
-  position: relative;
-}
-
-.navLinks a::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--accent-lime);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.navLinks a:hover::after {
-  width: 100%;
-}
-
-/* Feature card hover effect with smooth transition */
-.featureCard {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
-}
-
-.featureCard:hover {
-  transform: translateY(-6px);
-  border-color: var(--accent-lime);
-  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
-}
-
-/* Plan card hover with smooth transition */
-.planCard {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
-}
-
-.planCard:hover {
-  transform: translateY(-6px);
-}
-
-.planCardFeatured {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s ease;
-}
-
-.planCardFeatured:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 60px rgba(166, 241, 59, 0.25);
-}
-
-/* Trainer card hover with smooth transition */
-.trainerCard {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
-}
-
-.trainerCard:hover {
-  transform: translateY(-6px);
-  border-color: var(--accent-lime);
-  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
-}
-
-/* Testimonial card hover */
-.testimonialCard {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
-}
-
-.testimonialCard:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent-lime);
-  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
-}
-
-/* Check-in card subtle animation */
-.checkinCard {
-  animation: checkinFloat 3s ease-in-out infinite;
-}
-
-@keyframes checkinFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-/* Button hover animations */
-.primaryBtn,
-.primaryBtnLg,
-.secondaryBtn,
-.secondaryBtnLg {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease,
-              border-color 0.2s ease;
-}
-
-.primaryBtn:hover,
-.primaryBtnLg:hover,
-.secondaryBtn:hover,
-.secondaryBtnLg:hover {
-  transform: translateY(-2px) scale(1.02);
-}
-
-/* CTA card glow animation */
-.ctaCard {
-  animation: ctaGlow 4s ease-in-out infinite;
-}
-
-@keyframes ctaGlow {
-  0%, 100% {
-    box-shadow: 0 0 60px rgba(166, 241, 59, 0.15);
-  }
-  50% {
-    box-shadow: 0 0 80px rgba(166, 241, 59, 0.25);
-  }
-}
-
-/* ===== Mobile Responsive Animations ===== */
-@media (max-width: 768px) {
-  .animateOnScroll {
-    transform: translateY(25px);
-  }
-  
-  .animateCard {
-    transform: translateY(15px) scale(0.99);
-  }
-  
-  @keyframes cardFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(15px) scale(0.99);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-}
-/* ===== User Menu & Dropdown ===== */
-.userMenu {
-  position: relative;
-}
-
-.userButton {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.userButton:hover {
-  border-color: var(--accent-lime);
-  background: rgba(166, 241, 59, 0.05);
-}
-
-.userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-lime);
-  color: #05130a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.userName {
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.chevron {
-  color: var(--text-secondary);
-  transition: transform 0.2s ease;
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-.dropdownMenu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 280px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  padding: 12px;
-  z-index: 1000;
-  animation: dropdownSlideIn 0.2s ease;
-}
-
-@keyframes dropdownSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdownHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-}
-
-.dropdownAvatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--accent-lime);
-  color: #05130a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 15px;
-  flex-shrink: 0;
-}
-
-.dropdownUserInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.dropdownUserName {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 15px;
-}
-
-.dropdownUserRole {
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-transform: capitalize;
-}
-
-.dropdownDivider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 8px 0;
-}
-
-.dropdownNav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.dropdownItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  width: 100%;
-  text-align: left;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.dropdownItem:hover {
-  background: rgba(166, 241, 59, 0.1);
-  color: var(--text-primary);
-}
-
-.dropdownIcon {
-  color: var(--text-muted);
-  transition: color 0.2s ease;
-}
-
-.dropdownItem:hover .dropdownIcon {
-  color: var(--accent-lime);
-}
-
-.logoutIcon {
-  color: var(--error-red);
-}
-
-/* Update navbar for better spacing */
-.navActions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .dropdownMenu {
-    width: 260px;
-    right: -10px;
-  }
-}
-
-@media (max-width: 768px) {
-  .userButton {
-    padding: 6px 10px;
-  }
-  
-  .userName {
-    display: none;
-  }
-  
-  .chevron {
-    display: none;
-  }
-  
-  .dropdownMenu {
-    width: calc(100vw - 32px);
-    right: 8px;
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-}
 /* ===== User Menu & Dropdown ===== */
 .userMenu {
   position: relative;
@@ -1166,6 +718,15 @@
   padding: 12px;
   z-index: 1000;
   animation: dropdownSlideIn 0.2s ease;
+  /* Hide any accidental scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dropdownMenu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 @keyframes dropdownSlideIn {
@@ -1228,12 +789,23 @@
   margin: 8px 0;
 }
 
+/* ===== KEY FIX: No scrollbar for admin list ===== */
 .dropdownNav {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 280px;
-  overflow-y: auto;
+  /* Let the list grow with content — no max-height, no overflow */
+  /* Scrollbars fully disabled */
+  overflow: visible;
+  max-height: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dropdownNav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .dropdownItem {
@@ -1281,108 +853,287 @@
   color: #ef4444;
 }
 
+/* ===== Smooth Scroll Animations ===== */
+.animateOnScroll {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animateOnScroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animateCard {
+  opacity: 0;
+  transform: translateY(30px) scale(0.98);
+  animation: cardFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-play-state: paused;
+}
+
+.visible .animateCard {
+  animation-play-state: running;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hero {
+  animation: heroFadeIn 1s ease-out;
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat {
+  opacity: 0;
+  animation: statFadeIn 0.6s ease-out forwards;
+}
+
+.stat:nth-child(1) { animation-delay: 0.2s; }
+.stat:nth-child(2) { animation-delay: 0.4s; }
+.stat:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes statFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.badge {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.page {
+  scroll-behavior: smooth;
+}
+
+.navLinks a {
+  position: relative;
+}
+
+.navLinks a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-lime);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navLinks a:hover::after {
+  width: 100%;
+}
+
+.featureCard {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent-lime);
+  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
+}
+
+.planCard {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.planCard:hover {
+  transform: translateY(-6px);
+}
+
+.planCardFeatured {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s ease;
+}
+
+.planCardFeatured:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 60px rgba(166, 241, 59, 0.25);
+}
+
+.trainerCard {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.trainerCard:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent-lime);
+  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
+}
+
+.testimonialCard {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.testimonialCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-lime);
+  box-shadow: 0 8px 30px rgba(166, 241, 59, 0.08);
+}
+
+.checkinCard {
+  animation: checkinFloat 3s ease-in-out infinite;
+}
+
+@keyframes checkinFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.primaryBtn,
+.primaryBtnLg,
+.secondaryBtn,
+.secondaryBtnLg {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.primaryBtn:hover,
+.primaryBtnLg:hover,
+.secondaryBtn:hover,
+.secondaryBtnLg:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.ctaCard {
+  animation: ctaGlow 4s ease-in-out infinite;
+}
+
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 0 60px rgba(166, 241, 59, 0.15); }
+  50% { box-shadow: 0 0 80px rgba(166, 241, 59, 0.25); }
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
+  .navbar,
+  .hero,
+  .features,
+  .plans {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 48px;
+  }
+
+  .heroTitle {
+    font-size: 44px;
+  }
+
+  .featuresGrid,
+  .plansGrid,
+  .trainersGrid,
+  .testimonialsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
   .dropdownMenu {
     width: 260px;
     right: -10px;
   }
-}
 
-@media (max-width: 768px) {
-  .userButton {
-    padding: 4px 8px 4px 4px;
-  }
-  
-  .userName {
-    display: none;
-  }
-  
-  .chevron {
-    display: none;
-  }
-  
-  .dropdownMenu {
-    width: calc(100vw - 32px);
-    right: 8px;
-    max-height: 70vh;
-  }
-}
-
-/* ===== Trainer Images ===== */
-.trainerImage {
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  position: relative;
-  background: linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--bg-surface) 100%);
-}
-
-.trainerImage img {
-  width: 100%;
-  height: 130%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
-  filter: brightness(0.95) contrast(1.05);
-}
-
-.trainerCard:hover .trainerImage img {
-  transform: scale(1.08);
-  filter: brightness(1) contrast(1.1);
-}
-
-/* Subtle overlay for better text contrast if needed */
-.trainerImage::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 60%,
-    rgba(5, 7, 10, 0.4) 100%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.trainerCard:hover .trainerImage::after {
-  opacity: 1;
-}
-
-/* ===== Image Loading State ===== */
-.trainerImage img {
-  background: linear-gradient(
-    90deg,
-    var(--bg-surface-alt) 0%,
-    var(--bg-surface) 50%,
-    var(--bg-surface-alt) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* ===== Responsive Trainer Images ===== */
-@media (max-width: 1024px) {
   .trainerImage {
     aspect-ratio: 16 / 10;
   }
 }
 
+@media (max-width: 768px) {
+  .animateOnScroll {
+    transform: translateY(25px);
+  }
+
+  .animateCard {
+    transform: translateY(15px) scale(0.99);
+  }
+
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .userButton {
+    padding: 4px 8px 4px 4px;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .chevron {
+    display: none;
+  }
+
+  .dropdownMenu {
+    width: calc(100vw - 60px);
+    right: 10px;
+    max-height: none;
+    overflow: visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .dropdownMenu::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
 @media (max-width: 640px) {
+  .navLinks {
+    display: none;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .statsRow {
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
   .trainerImage {
     aspect-ratio: 16 / 9;
   }
-  
+
   .trainerCard:hover .trainerImage img {
     transform: scale(1.04);
   }
