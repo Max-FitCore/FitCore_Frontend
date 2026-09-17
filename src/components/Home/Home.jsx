@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Star,
   ArrowRight,
@@ -15,21 +15,18 @@ import {
   Users,
   Calendar,
   Settings,
-  CreditCard as CreditCardIcon,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../../assets/hero-gym.jpg';
-import co1 from '../../assets/Co1.jpg';
-import co2 from '../../assets/Co2.jpg';
-import co3 from '../../assets/Co3.jpg';
 import styles from './Home.module.css';
 
-const trainers = [
-  { name: 'Marcus Reid', specialty: 'Strength & Conditioning', experience: '9 yrs experience', rating: '4.9', image: co1 },
-  { name: 'Elena Cho', specialty: 'Mobility & Recovery', experience: '6 yrs experience', rating: '4.8', image: co2 },
-  { name: 'Jordan Blake', specialty: 'HIIT & Fat Loss', experience: '7 yrs experience', rating: '5.0', image: co3 },
-];
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+/* ============================================================
+   Static content (not yet backed by an endpoint)
+   ============================================================ */
 const testimonials = [
   { quote: 'Booking classes used to be a hassle. Now I see live spots and confirm in seconds.', name: 'Priya Nandan', role: 'Premium member, 8 months' },
   { quote: 'My trainer updates my plan every week and I can see exactly what changed.', name: 'Daniel Ostrowski', role: 'VIP member, 1 year' },
@@ -45,15 +42,8 @@ const features = [
   { icon: CreditCard, title: 'Payments & Revenue', description: 'Invoices, payment status and revenue analytics for the whole gym.' },
 ];
 
-const plans = [
-  { name: 'Basic', description: 'Everything you need to start moving.', price: '29', features: ['Full gym floor access', '2 group classes / month', 'Attendance tracking', 'Mobile app access'], featured: false },
-  { name: 'Premium', description: 'Structured training with real coaching.', price: '59', features: ['Unlimited gym access', 'Unlimited group classes', 'Personalised workout plans', 'Monthly progress review', 'Nutrition guidance'], featured: true },
-  { name: 'VIP', description: 'One-to-one performance programming.', price: '119', features: ['Everything in Premium', '8 personal training sessions', 'Priority class booking', 'Body composition scans', 'Recovery & sauna suite'], featured: false },
-];
-
 /* ============================================================
-   NAVIGATION BY ROLE
-   Paths MUST match the ones used in Layout.jsx and App routes
+   Role-based navigation
    ============================================================ */
 const navigationByRole = {
   member: [
@@ -61,7 +51,7 @@ const navigationByRole = {
     { name: 'Membership', path: '/membership', icon: UserCheck },
     { name: 'Workout Plans', path: '/workout-plans', icon: Dumbbell },
     { name: 'Classes', path: '/classes', icon: Calendar },
-    { name: 'Payments', path: '/payments', icon: CreditCardIcon },
+    { name: 'Payments', path: '/payments', icon: CreditCard },
     { name: 'Settings', path: '/settings', icon: Settings },
   ],
   trainer: [
@@ -77,40 +67,28 @@ const navigationByRole = {
     { name: 'Members', path: '/admin/members', icon: Users },
     { name: 'Trainers', path: '/admin/trainers', icon: User },
     { name: 'Classes', path: '/admin/classes', icon: Calendar },
-    { name: 'Payments', path: '/admin/payments', icon: CreditCardIcon },
+    { name: 'Payments', path: '/admin/payments', icon: CreditCard },
     { name: 'Plans', path: '/admin/plans', icon: BarChart3 },
     { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ],
 };
 
-/* ============================================================
-   NORMALIZE ROLE
-   Handles: "Admin", "ADMIN", "admin", "admin_role", "administrator"
-   ============================================================ */
 const normalizeRole = (rawRole) => {
   if (!rawRole) return 'member';
   const r = String(rawRole).toLowerCase().trim();
-
   if (r.includes('admin') || r.includes('administrator')) return 'admin';
   if (r.includes('trainer') || r.includes('coach')) return 'trainer';
   if (r.includes('member') || r.includes('user') || r.includes('client')) return 'member';
-
   return 'member';
 };
 
-/* ============================================================
-   GET USER FROM STORAGE
-   Tries multiple sources: fitcore_user, user, token (JWT)
-   ============================================================ */
 const getUserFromStorage = () => {
   try {
-    // 1) Dedicated key
     const raw = localStorage.getItem('fitcore_user') || localStorage.getItem('user');
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        // Some apps store { data: { ...user } }
         const u = parsed?.data ? parsed.data : parsed;
         if (u && (u.role || u.userRole || u.type)) {
           const role = normalizeRole(u.role || u.userRole || u.type);
@@ -124,8 +102,6 @@ const getUserFromStorage = () => {
         console.error('Failed to parse stored user:', e);
       }
     }
-
-    // 2) Decode JWT token
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -146,10 +122,47 @@ const getUserFromStorage = () => {
   return null;
 };
 
+const initialsOf = (name = '') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+const durationLabel = (d) => {
+  switch (d) {
+    case 'Monthly':
+      return '/mo';
+    case 'Quarterly':
+      return '/qtr';
+    case 'Half-Yearly':
+      return '/6mo';
+    case 'Yearly':
+      return '/yr';
+    default:
+      return '/mo';
+  }
+};
+
+/* ============================================================
+   Component
+   ============================================================ */
 export default function HomePage() {
   const [user, setUser] = useState(() => getUserFromStorage());
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Public trainers state
+  const [trainers, setTrainers] = useState([]);
+  const [loadingTrainers, setLoadingTrainers] = useState(true);
+  const [trainersError, setTrainersError] = useState('');
+
+  // Public plans state
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [plansError, setPlansError] = useState('');
 
   const featuresRef = useRef(null);
   const plansRef = useRef(null);
@@ -158,14 +171,77 @@ export default function HomePage() {
   const ctaRef = useRef(null);
   const navigate = useNavigate();
 
-  // Sync across tabs
+  /* ---------- Fetch public trainers ---------- */
+  const fetchTrainers = useCallback(async () => {
+    try {
+      setLoadingTrainers(true);
+      setTrainersError('');
+      const res = await fetch(`${API_BASE}/api/public/trainers?limit=6`);
+
+      const contentType = res.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        throw new Error(`Server returned non-JSON (${res.status})`);
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Failed to load trainers (${res.status})`);
+      }
+      setTrainers(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      console.error('Fetch trainers error:', err);
+      setTrainersError(err.message || 'Failed to load trainers');
+      setTrainers([]);
+    } finally {
+      setLoadingTrainers(false);
+    }
+  }, []);
+
+  /* ---------- Fetch public membership plans ---------- */
+  const fetchPlans = useCallback(async () => {
+    try {
+      setLoadingPlans(true);
+      setPlansError('');
+      const res = await fetch(
+        `${API_BASE}/api/public/membership-plans?limit=3&sortBy=price&sortOrder=asc`
+      );
+
+      const contentType = res.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        throw new Error(`Server returned non-JSON (${res.status})`);
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Failed to load plans (${res.status})`);
+      }
+      setPlans(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      console.error('Fetch plans error:', err);
+      setPlansError(err.message || 'Failed to load plans');
+      setPlans([]);
+    } finally {
+      setLoadingPlans(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrainers();
+    fetchPlans();
+  }, [fetchTrainers, fetchPlans]);
+
+  /* ---------- Sync user across tabs ---------- */
   useEffect(() => {
     const handleStorageChange = () => setUser(getUserFromStorage());
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Close dropdown on outside click
+  /* ---------- Close dropdown on outside click ---------- */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -176,7 +252,6 @@ export default function HomePage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Sign out
   const handleSignOut = () => {
     localStorage.removeItem('fitcore_user');
     localStorage.removeItem('user');
@@ -189,11 +264,6 @@ export default function HomePage() {
   const handleNavigation = (path) => {
     setIsDropdownOpen(false);
     navigate(path);
-  };
-
-  const getInitials = (name) => {
-    if (!name) return '?';
-    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const getDashboardPath = () => {
@@ -209,7 +279,7 @@ export default function HomePage() {
     }
   };
 
-  // Scroll animations
+  /* ---------- Scroll animations ---------- */
   useEffect(() => {
     const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
@@ -221,19 +291,22 @@ export default function HomePage() {
     const sections = document.querySelectorAll(`.${styles.animateOnScroll}`);
     sections.forEach((section) => observer.observe(section));
     return () => sections.forEach((section) => observer.unobserve(section));
-  }, []);
-
-  // Debug log - remove in production
-  useEffect(() => {
-    if (user) {
-      console.log('[Home] user role:', user.role);
-      console.log('[Home] nav items:', navigationByRole[user.role]?.length || 0);
-    }
-  }, [user]);
+  }, [loadingTrainers, loadingPlans]);
 
   const navigationItems = user ? navigationByRole[user.role] || [] : [];
   const roleLabel = user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '';
 
+  const trainerSubtitle = (t) => t.speciality || 'Certified trainer';
+  const trainerMeta = (t) => {
+    if (t.location) return t.location;
+    if (t.availability) return t.availability;
+    if (t.certifications) return t.certifications;
+    return 'Available for sessions';
+  };
+
+  /* ============================================================
+     Render
+     ============================================================ */
   return (
     <div className={styles.page}>
       {/* Navbar */}
@@ -268,27 +341,26 @@ export default function HomePage() {
                 aria-haspopup="true"
                 aria-expanded={isDropdownOpen}
               >
-                <div className={styles.userAvatar}>{getInitials(user.name)}</div>
+                <div className={styles.userAvatar}>{initialsOf(user.name)}</div>
                 <span className={styles.userName}>{user.name}</span>
-                <ChevronDown size={16} className={`${styles.chevron} ${isDropdownOpen ? styles.chevronOpen : ''}`} />
+                <ChevronDown
+                  size={16}
+                  className={`${styles.chevron} ${isDropdownOpen ? styles.chevronOpen : ''}`}
+                />
               </button>
 
               {isDropdownOpen && (
                 <div className={styles.dropdownMenu}>
                   <div className={styles.dropdownHeader}>
-                    <div className={styles.dropdownAvatar}>{getInitials(user.name)}</div>
+                    <div className={styles.dropdownAvatar}>{initialsOf(user.name)}</div>
                     <div className={styles.dropdownUserInfo}>
                       <span className={styles.dropdownUserName}>{user.name}</span>
-                      <span className={styles.dropdownUserRole}>
-                        {roleLabel}
-                        {user.plan && ` · ${user.plan}`}
-                      </span>
+                      <span className={styles.dropdownUserRole}>{roleLabel}</span>
                     </div>
                   </div>
 
                   <div className={styles.dropdownDivider} />
 
-                  {/* Navigation list — same for member, trainer, admin */}
                   {navigationItems.length > 0 && (
                     <>
                       <nav className={styles.dropdownNav}>
@@ -347,7 +419,11 @@ export default function HomePage() {
                 <Link to="/sign-up" className={styles.primaryBtnLg}>
                   Join now <ArrowRight size={18} />
                 </Link>
-                <a href="#plans" className={styles.secondaryBtnLg} onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}>
+                <a
+                  href="#plans"
+                  className={styles.secondaryBtnLg}
+                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
+                >
                   Explore plans
                 </a>
               </>
@@ -385,7 +461,11 @@ export default function HomePage() {
         </div>
         <div className={styles.featuresGrid}>
           {features.map(({ icon: Icon, title, description }, index) => (
-            <div key={title} className={`${styles.featureCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.1}s` }}>
+            <div
+              key={title}
+              className={`${styles.featureCard} ${styles.animateCard}`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <span className={styles.featureIcon}><Icon size={20} strokeWidth={2} /></span>
               <h3>{title}</h3>
               <p>{description}</p>
@@ -400,24 +480,88 @@ export default function HomePage() {
           <h2>Membership plans</h2>
           <p>Transparent pricing. Cancel or upgrade any time from your dashboard.</p>
         </div>
-        <div className={styles.plansGrid}>
-          {plans.map((plan, index) => (
-            <div key={plan.name} className={`${styles.planCard} ${plan.featured ? styles.planCardFeatured : ''} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.15}s` }}>
-              {plan.featured && <span className={styles.popularBadge}>Most popular</span>}
-              <h3 className={styles.planName}>{plan.name}</h3>
-              <p className={styles.planDescription}>{plan.description}</p>
-              <p className={styles.planPrice}>${plan.price}<span className={styles.planPeriod}>/mo</span></p>
-              <ul className={styles.planFeatures}>{plan.features.map((item) => (<li key={item}>{item}</li>))}</ul>
-              <button
-                type="button"
-                className={plan.featured ? styles.primaryBtn : styles.secondaryBtn}
-                onClick={() => { if (user) handleNavigation('/membership'); else navigate('/sign-in'); }}
-              >
-                {user ? 'Choose plan' : 'Join now'}
-              </button>
-            </div>
-          ))}
-        </div>
+
+        {loadingPlans && (
+          <div className={styles.stateMessage}>
+            <Loader2 size={18} className={styles.spinner} />
+            Loading plans…
+          </div>
+        )}
+
+        {!loadingPlans && plansError && (
+          <div className={styles.stateError}>
+            {plansError}
+            <button className={styles.retryBtn} onClick={fetchPlans}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!loadingPlans && !plansError && plans.length === 0 && (
+          <div className={styles.stateMessage}>
+            No membership plans available yet. Check back soon.
+          </div>
+        )}
+
+        {!loadingPlans && !plansError && plans.length > 0 && (
+          <div className={styles.plansGrid}>
+            {plans.map((plan, index) => {
+              const featured = !!plan.isPopular;
+              const discount = Number(plan.discount) || 0;
+              const originalPrice = Number(plan.price) || 0;
+              const effectivePrice = discount > 0
+                ? originalPrice * (1 - discount / 100)
+                : originalPrice;
+              const period = durationLabel(plan.duration);
+
+              return (
+                <div
+                  key={plan._id}
+                  className={`${styles.planCard} ${featured ? styles.planCardFeatured : ''} ${styles.animateCard}`}
+                  style={{ animationDelay: `${index * 0.15}s` }}
+                >
+                  {featured && <span className={styles.popularBadge}>Most popular</span>}
+
+                  <h3 className={styles.planName}>{plan.planName}</h3>
+                  {plan.description && (
+                    <p className={styles.planDescription}>{plan.description}</p>
+                  )}
+
+                  <p className={styles.planPrice}>
+                    ${effectivePrice.toFixed(0)}
+                    <span className={styles.planPeriod}>{period}</span>
+                  </p>
+
+                  {discount > 0 && (
+                    <p className={styles.planDiscountNote}>
+                      <span className={styles.planOriginalPrice}>
+                        ${originalPrice.toFixed(0)}
+                      </span>{' '}
+                      · save {discount}%
+                    </p>
+                  )}
+
+                  <ul className={styles.planFeatures}>
+                    {(plan.features || []).map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    className={featured ? styles.primaryBtn : styles.secondaryBtn}
+                    onClick={() => {
+                      if (user) handleNavigation('/membership');
+                      else navigate('/sign-in');
+                    }}
+                  >
+                    {user ? 'Choose plan' : 'Join now'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Trainers */}
@@ -426,22 +570,67 @@ export default function HomePage() {
           <h2>Train with people who show up for you</h2>
           <p>Certified coaches across strength, mobility, and conditioning — matched to your goals.</p>
         </div>
-        <div className={styles.trainersGrid}>
-          {trainers.map((trainer, index) => (
-            <div key={trainer.name} className={`${styles.trainerCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.12}s` }}>
-              <div className={styles.trainerImage}><img src={trainer.image} alt={trainer.name} /></div>
-              <div className={styles.trainerInfo}>
-                <div className={styles.trainerHeader}>
-                  <h3>{trainer.name}</h3>
-                  <span className={styles.trainerRating}><Star size={13} fill="currentColor" />{trainer.rating}</span>
+
+        {loadingTrainers && (
+          <div className={styles.stateMessage}>
+            <Loader2 size={18} className={styles.spinner} />
+            Loading trainers…
+          </div>
+        )}
+
+        {!loadingTrainers && trainersError && (
+          <div className={styles.stateError}>
+            {trainersError}
+            <button className={styles.retryBtn} onClick={fetchTrainers}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!loadingTrainers && !trainersError && trainers.length === 0 && (
+          <div className={styles.stateMessage}>
+            No trainers available yet. Check back soon.
+          </div>
+        )}
+
+        {!loadingTrainers && !trainersError && trainers.length > 0 && (
+          <div className={styles.trainersGrid}>
+            {trainers.map((trainer, index) => {
+              const hasPhoto = !!trainer.profilePicture?.url;
+              return (
+                <div
+                  key={trainer._id}
+                  className={`${styles.trainerCard} ${styles.animateCard}`}
+                  style={{ animationDelay: `${index * 0.12}s` }}
+                >
+                  <div className={styles.trainerImage}>
+                    {hasPhoto ? (
+                      <img src={trainer.profilePicture.url} alt={trainer.fullName} />
+                    ) : (
+                      <div className={styles.trainerInitials}>
+                        {initialsOf(trainer.fullName)}
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.trainerInfo}>
+                    <div className={styles.trainerHeader}>
+                      <h3>{trainer.fullName || 'Trainer'}</h3>
+                    </div>
+                    <p className={styles.trainerSpecialty}>{trainerSubtitle(trainer)}</p>
+                    <p className={styles.trainerExperience}>{trainerMeta(trainer)}</p>
+                    <button
+                      type="button"
+                      className={styles.secondaryBtn}
+                      onClick={() => navigate(user ? '/classes' : '/sign-up')}
+                    >
+                      {user ? 'Book a session' : 'Join to book'}
+                    </button>
+                  </div>
                 </div>
-                <p className={styles.trainerSpecialty}>{trainer.specialty}</p>
-                <p className={styles.trainerExperience}>{trainer.experience}</p>
-                <button type="button" className={styles.secondaryBtn}>View profile</button>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Testimonials */}
@@ -452,9 +641,15 @@ export default function HomePage() {
         </div>
         <div className={styles.testimonialsGrid}>
           {testimonials.map((t, index) => (
-            <div key={t.name} className={`${styles.testimonialCard} ${styles.animateCard}`} style={{ animationDelay: `${index * 0.12}s` }}>
+            <div
+              key={t.name}
+              className={`${styles.testimonialCard} ${styles.animateCard}`}
+              style={{ animationDelay: `${index * 0.12}s` }}
+            >
               <div className={styles.testimonialStars}>
-                {Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={14} fill="currentColor" />))}
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} size={14} fill="currentColor" />
+                ))}
               </div>
               <p className={styles.testimonialQuote}>&ldquo;{t.quote}&rdquo;</p>
               <div className={styles.testimonialAuthor}>
@@ -474,8 +669,16 @@ export default function HomePage() {
           <div className={styles.heroActions}>
             {!user ? (
               <>
-                <Link to="/sign-up" className={styles.primaryBtnLg}>Join now <ArrowRight size={18} /></Link>
-                <a href="#plans" className={styles.secondaryBtnLg} onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}>Explore plans</a>
+                <Link to="/sign-up" className={styles.primaryBtnLg}>
+                  Join now <ArrowRight size={18} />
+                </Link>
+                <a
+                  href="#plans"
+                  className={styles.secondaryBtnLg}
+                  onClick={(e) => { e.preventDefault(); smoothScrollTo(plansRef); }}
+                >
+                  Explore plans
+                </a>
               </>
             ) : (
               <button className={styles.primaryBtnLg} onClick={() => handleNavigation(getDashboardPath())}>
@@ -489,8 +692,12 @@ export default function HomePage() {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.logo}>
-          <span className={styles.logoMark}><Dumbbell size={16} strokeWidth={2.5} /></span>
-          <span className={styles.logoText}>Fit<span className={styles.accent}>Core</span></span>
+          <span className={styles.logoMark}>
+            <Dumbbell size={16} strokeWidth={2.5} />
+          </span>
+          <span className={styles.logoText}>
+            Fit<span className={styles.accent}>Core</span>
+          </span>
         </div>
         <p className={styles.footerText}>© {new Date().getFullYear()} FitCore. All rights reserved.</p>
       </footer>
