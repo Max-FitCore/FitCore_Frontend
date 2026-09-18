@@ -22,7 +22,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach auth token on every request
 api.interceptors.request.use(
   (config) => {
     const token =
@@ -61,6 +60,19 @@ const adminMemberService = {
 /* ============================================================
    BACKEND → UI MAPPER
    ============================================================ */
+const formatDate = (d) => {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+};
+
 const mapFromBackend = (u) => {
   if (!u) return null;
   return {
@@ -70,17 +82,40 @@ const mapFromBackend = (u) => {
     phone: u.phone || '',
     location: u.location || '',
     bio: u.bio || '',
-    // UI-only fields (not persisted to backend):
-    plan: 'Basic',
-    trainer: '—',
-    joined: u.createdAt
-      ? new Date(u.createdAt).toISOString().split('T')[0]
+    isActive: u.isActive !== false,
+    status: u.isActive === false ? 'Inactive' : 'Active',
+    joined: formatDate(u.createdAt),
+    joinedRaw: u.createdAt ? u.createdAt.split('T')[0] : '',
+    // Member details (from memberDetails subdoc)
+    dateOfBirth: u.memberDetails?.dateOfBirth
+      ? u.memberDetails.dateOfBirth.split('T')[0]
       : '',
-    lastVisit: '—',
-    // Map isActive → status string
-    status: u.isActive === false ? 'Expired' : 'Active',
+    gender: u.memberDetails?.gender || '',
+    address: u.memberDetails?.address || '',
+    emergencyContact: {
+      name: u.memberDetails?.emergencyContact?.name || '',
+      phone: u.memberDetails?.emergencyContact?.phone || '',
+      relationship: u.memberDetails?.emergencyContact?.relationship || '',
+    },
+    medicalConditions: Array.isArray(u.memberDetails?.medicalConditions)
+      ? u.memberDetails.medicalConditions.join(', ')
+      : '',
+    fitnessGoals: Array.isArray(u.memberDetails?.fitnessGoals)
+      ? u.memberDetails.fitnessGoals.join(', ')
+      : '',
+    // Read-only stats from backend
+    stats: {
+      totalBookedSessions: u.stats?.totalBookedSessions ?? 0,
+      totalAssignedPlans: u.stats?.totalAssignedPlans ?? 0,
+    },
   };
 };
+
+const splitCsv = (value) =>
+  String(value || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 /* ============================================================
    COMPONENT
@@ -107,18 +142,28 @@ const Members = () => {
   const [password, setPassword] = useState('');
 
   const [formData, setFormData] = useState({
+    // Base
     name: '',
     email: '',
     phone: '',
     location: '',
-    plan: 'Basic',
-    trainer: '',
-    joined: '',
-    lastVisit: '',
+    bio: '',
     status: 'Active',
+    joined: '',
+    // Member details
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    emergencyName: '',
+    emergencyPhone: '',
+    emergencyRelationship: '',
+    medicalConditions: '',
+    fitnessGoals: '',
   });
 
-  // ============ FETCH ============
+  /* ============================================================
+     FETCH
+     ============================================================ */
   const fetchMembers = useCallback(async () => {
     try {
       setLoading(true);
@@ -141,7 +186,9 @@ const Members = () => {
     fetchMembers();
   }, [fetchMembers]);
 
-  // ============ FILTER ============
+  /* ============================================================
+     FILTER
+     ============================================================ */
   const filteredMembers = members.filter((m) => {
     const term = searchTerm.toLowerCase();
     const matchesSearch =
@@ -152,7 +199,9 @@ const Members = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // ============ TOAST ============
+  /* ============================================================
+     TOAST
+     ============================================================ */
   const showToastMessage = (msg, type = 'success') => {
     setToastMessage(msg);
     setToastType(type);
@@ -160,7 +209,9 @@ const Members = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // ============ FORM ============
+  /* ============================================================
+     FORM
+     ============================================================ */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -172,11 +223,17 @@ const Members = () => {
       email: '',
       phone: '',
       location: '',
-      plan: 'Basic',
-      trainer: '',
-      joined: new Date().toISOString().split('T')[0],
-      lastVisit: '',
+      bio: '',
       status: 'Active',
+      joined: new Date().toISOString().split('T')[0],
+      dateOfBirth: '',
+      gender: '',
+      address: '',
+      emergencyName: '',
+      emergencyPhone: '',
+      emergencyRelationship: '',
+      medicalConditions: '',
+      fitnessGoals: '',
     });
     setPassword('');
   };
@@ -194,16 +251,24 @@ const Members = () => {
       email: member.email || '',
       phone: member.phone || '',
       location: member.location || '',
-      plan: member.plan || 'Basic',
-      trainer: member.trainer || '',
-      joined: member.joined || '',
-      lastVisit: member.lastVisit || '',
+      bio: member.bio || '',
       status: member.status || 'Active',
+      joined: member.joinedRaw || '',
+      dateOfBirth: member.dateOfBirth || '',
+      gender: member.gender || '',
+      address: member.address || '',
+      emergencyName: member.emergencyContact?.name || '',
+      emergencyPhone: member.emergencyContact?.phone || '',
+      emergencyRelationship: member.emergencyContact?.relationship || '',
+      medicalConditions: member.medicalConditions || '',
+      fitnessGoals: member.fitnessGoals || '',
     });
     setIsModalOpen(true);
   };
 
-  // ============ DELETE ============
+  /* ============================================================
+     DELETE
+     ============================================================ */
   const handleDeleteClick = (member) => {
     setMemberToDelete(member);
     setIsDeleteModalOpen(true);
@@ -234,10 +299,27 @@ const Members = () => {
     setIsDeleteModalOpen(false);
   };
 
-  // ============ SUBMIT ============
+  /* ============================================================
+     SUBMIT
+     ============================================================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
+
+    // Shared memberDetails payload
+    const emergencyContact = {
+      name: formData.emergencyName?.trim() || '',
+      phone: formData.emergencyPhone?.trim() || '',
+      relationship: formData.emergencyRelationship?.trim() || '',
+    };
+    const hasEmergency =
+      emergencyContact.name ||
+      emergencyContact.phone ||
+      emergencyContact.relationship;
+
+    const medicalConditionsArr = splitCsv(formData.medicalConditions);
+    const fitnessGoalsArr = splitCsv(formData.fitnessGoals);
 
     try {
       if (editingMember) {
@@ -246,17 +328,28 @@ const Members = () => {
           fullName: formData.name?.trim(),
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
+          bio: formData.bio?.trim() || null,
           isActive: formData.status === 'Active',
         };
 
-        const res = await adminMemberService.update(editingMember.id, payload);
+        if (formData.dateOfBirth) payload.dateOfBirth = formData.dateOfBirth;
+        if (formData.gender) payload.gender = formData.gender;
+        if (formData.address !== undefined) {
+          payload.address = formData.address?.trim() || '';
+        }
+        if (hasEmergency) payload.emergencyContact = emergencyContact;
+        if (medicalConditionsArr.length > 0) {
+          payload.medicalConditions = medicalConditionsArr;
+        }
+        if (fitnessGoalsArr.length > 0) {
+          payload.fitnessGoals = fitnessGoalsArr;
+        }
 
-        const updated = {
-          ...mapFromBackend(res.data),
-          plan: formData.plan,
-          trainer: formData.trainer,
-          lastVisit: formData.lastVisit,
-        };
+        const res = await adminMemberService.update(editingMember.id, payload);
+        const updated = mapFromBackend({
+          ...res.data,
+          stats: editingMember.stats, // preserve stats (update endpoint doesn't return them)
+        });
 
         setMembers((prev) =>
           prev.map((m) => (m.id === editingMember.id ? updated : m))
@@ -266,7 +359,6 @@ const Members = () => {
         // ---- CREATE ----
         if (!password || password.length < 6) {
           showToastMessage('Password must be at least 6 characters', 'error');
-          setSubmitting(false);
           return;
         }
         if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
@@ -274,7 +366,6 @@ const Members = () => {
             'Password must contain 1 uppercase, 1 lowercase, and 1 number',
             'error'
           );
-          setSubmitting(false);
           return;
         }
 
@@ -284,16 +375,25 @@ const Members = () => {
           password,
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
+          bio: formData.bio?.trim() || null,
         };
+
+        if (formData.dateOfBirth) payload.dateOfBirth = formData.dateOfBirth;
+        if (formData.gender) payload.gender = formData.gender;
+        if (formData.address?.trim()) payload.address = formData.address.trim();
+        if (hasEmergency) payload.emergencyContact = emergencyContact;
+        if (medicalConditionsArr.length > 0) {
+          payload.medicalConditions = medicalConditionsArr;
+        }
+        if (fitnessGoalsArr.length > 0) {
+          payload.fitnessGoals = fitnessGoalsArr;
+        }
 
         const res = await adminMemberService.create(payload);
-
-        const created = {
-          ...mapFromBackend(res.data),
-          plan: formData.plan,
-          trainer: formData.trainer,
-          lastVisit: formData.lastVisit,
-        };
+        const created = mapFromBackend({
+          ...res.data,
+          stats: { totalBookedSessions: 0, totalAssignedPlans: 0 },
+        });
 
         setMembers((prev) => [created, ...prev]);
         showToastMessage('Member added successfully');
@@ -316,16 +416,16 @@ const Members = () => {
     switch (status) {
       case 'Active':
         return styles.statusActive;
-      case 'Expiring':
-        return styles.statusExpiring;
-      case 'Expired':
+      case 'Inactive':
         return styles.statusExpired;
       default:
         return styles.statusActive;
     }
   };
 
-  // ============ RENDER ============
+  /* ============================================================
+     RENDER
+     ============================================================ */
   return (
     <div className={styles.membersPage}>
       {/* Header */}
@@ -340,7 +440,11 @@ const Members = () => {
                 }`}
           </p>
         </div>
-        <button className={styles.addBtn} onClick={handleAdd}>
+        <button
+          className={styles.addBtn}
+          onClick={handleAdd}
+          type="button"
+        >
           <Plus size={18} />
           Add member
         </button>
@@ -359,9 +463,10 @@ const Members = () => {
           />
         </div>
         <div className={styles.filterTabs}>
-          {['All', 'Active', 'Expiring', 'Expired'].map((tab) => (
+          {['All', 'Active', 'Inactive'].map((tab) => (
             <button
               key={tab}
+              type="button"
               className={`${styles.filterTab} ${
                 filter === tab ? styles.active : ''
               }`}
@@ -375,47 +480,17 @@ const Members = () => {
 
       {/* Loading */}
       {loading && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '3rem',
-            color: '#9ca3af',
-            gap: '0.75rem',
-          }}
-        >
-          <Loader2 size={22} className="spin" />
+        <div className={styles.stateMessage}>
+          <Loader2 size={22} className={styles.spin} />
           Loading members…
         </div>
       )}
 
       {/* Error */}
       {!loading && error && (
-        <div
-          style={{
-            padding: '1.5rem',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '12px',
-            color: '#ef4444',
-            textAlign: 'center',
-          }}
-        >
+        <div className={styles.stateError}>
           {error}
-          <button
-            onClick={fetchMembers}
-            style={{
-              marginLeft: '1rem',
-              padding: '0.4rem 1rem',
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
-          >
+          <button className={styles.retryBtn} onClick={fetchMembers}>
             Retry
           </button>
         </div>
@@ -428,10 +503,11 @@ const Members = () => {
             <thead>
               <tr>
                 <th>Member</th>
-                <th>Plan</th>
-                <th>Trainer</th>
+                <th>Phone</th>
+                <th>Location</th>
                 <th>Joined</th>
-                <th>Last visit</th>
+                <th>Sessions</th>
+                <th>Plans</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -440,7 +516,7 @@ const Members = () => {
               {filteredMembers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="8"
                     style={{
                       textAlign: 'center',
                       padding: '2rem',
@@ -463,10 +539,11 @@ const Members = () => {
                         </span>
                       </div>
                     </td>
-                    <td>{member.plan}</td>
-                    <td>{member.trainer}</td>
+                    <td>{member.phone || '—'}</td>
+                    <td>{member.location || '—'}</td>
                     <td>{member.joined}</td>
-                    <td>{member.lastVisit}</td>
+                    <td>{member.stats.totalBookedSessions}</td>
+                    <td>{member.stats.totalAssignedPlans}</td>
                     <td>
                       <span
                         className={`${styles.statusBadge} ${getStatusClass(
@@ -478,12 +555,14 @@ const Members = () => {
                     </td>
                     <td>
                       <button
+                        type="button"
                         className={`${styles.actionBtn} ${styles.editBtn}`}
                         onClick={() => handleEdit(member)}
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
+                        type="button"
                         className={`${styles.actionBtn} ${styles.deleteBtn}`}
                         onClick={() => handleDeleteClick(member)}
                       >
@@ -513,6 +592,7 @@ const Members = () => {
                 {editingMember ? 'Edit Member' : 'Add New Member'}
               </h2>
               <button
+                type="button"
                 className={styles.closeBtn}
                 onClick={() => setIsModalOpen(false)}
                 disabled={submitting}
@@ -522,8 +602,11 @@ const Members = () => {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.modalForm}>
+              {/* ---------- Account ---------- */}
+              <h3 className={styles.formSectionTitle}>Account</h3>
+
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Full Name</label>
+                <label className={styles.formLabel}>Full Name *</label>
                 <input
                   type="text"
                   name="name"
@@ -536,7 +619,7 @@ const Members = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Email</label>
+                <label className={styles.formLabel}>Email *</label>
                 <input
                   type="email"
                   name="email"
@@ -546,11 +629,16 @@ const Members = () => {
                   required
                   disabled={!!editingMember || submitting}
                 />
+                {editingMember && (
+                  <span className={styles.formHint}>
+                    Email cannot be changed after creation.
+                  </span>
+                )}
               </div>
 
               {!editingMember && (
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Password</label>
+                  <label className={styles.formLabel}>Password *</label>
                   <input
                     type="password"
                     className={styles.formInput}
@@ -575,7 +663,6 @@ const Members = () => {
                     disabled={submitting}
                   />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Location</label>
                   <input
@@ -589,74 +676,166 @@ const Members = () => {
                 </div>
               </div>
 
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Bio</label>
+                <textarea
+                  name="bio"
+                  className={styles.formInput}
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  rows={2}
+                  maxLength={500}
+                  style={{ resize: 'vertical', fontFamily: 'inherit' }}
+                  disabled={submitting}
+                />
+              </div>
+
+              {editingMember && (
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Joined</label>
+                    <input
+                      type="date"
+                      className={styles.formInput}
+                      value={formData.joined}
+                      disabled
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Status</label>
+                    <select
+                      name="status"
+                      className={styles.formSelect}
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      disabled={submitting}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* ---------- Personal Details ---------- */}
+              <h3 className={styles.formSectionTitle}>Personal Details</h3>
+
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Plan</label>
+                  <label className={styles.formLabel}>Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    className={styles.formInput}
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    disabled={submitting}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Gender</label>
                   <select
-                    name="plan"
+                    name="gender"
                     className={styles.formSelect}
-                    value={formData.plan}
+                    value={formData.gender}
                     onChange={handleInputChange}
                     disabled={submitting}
                   >
-                    <option value="Basic">Basic</option>
-                    <option value="Premium">Premium</option>
-                    <option value="VIP">VIP</option>
+                    <option value="">Not set</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
                   </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Trainer</label>
-                  <input
-                    type="text"
-                    name="trainer"
-                    className={styles.formInput}
-                    value={formData.trainer}
-                    onChange={handleInputChange}
-                    disabled={submitting}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Joined Date</label>
-                  <input
-                    type="date"
-                    name="joined"
-                    className={styles.formInput}
-                    value={formData.joined}
-                    onChange={handleInputChange}
-                    disabled
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Last Visit</label>
-                  <input
-                    type="date"
-                    name="lastVisit"
-                    className={styles.formInput}
-                    value={formData.lastVisit}
-                    onChange={handleInputChange}
-                    disabled={submitting}
-                  />
                 </div>
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Status</label>
-                <select
-                  name="status"
-                  className={styles.formSelect}
-                  value={formData.status}
+                <label className={styles.formLabel}>Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  className={styles.formInput}
+                  value={formData.address}
                   onChange={handleInputChange}
                   disabled={submitting}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Expiring">Expiring</option>
-                  <option value="Expired">Expired</option>
-                </select>
+                />
+              </div>
+
+              {/* ---------- Emergency Contact ---------- */}
+              <h3 className={styles.formSectionTitle}>Emergency Contact</h3>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Name</label>
+                <input
+                  type="text"
+                  name="emergencyName"
+                  className={styles.formInput}
+                  value={formData.emergencyName}
+                  onChange={handleInputChange}
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Phone</label>
+                  <input
+                    type="text"
+                    name="emergencyPhone"
+                    className={styles.formInput}
+                    value={formData.emergencyPhone}
+                    onChange={handleInputChange}
+                    disabled={submitting}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Relationship</label>
+                  <input
+                    type="text"
+                    name="emergencyRelationship"
+                    className={styles.formInput}
+                    value={formData.emergencyRelationship}
+                    onChange={handleInputChange}
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              {/* ---------- Fitness ---------- */}
+              <h3 className={styles.formSectionTitle}>Fitness Profile</h3>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  Medical Conditions
+                </label>
+                <input
+                  type="text"
+                  name="medicalConditions"
+                  className={styles.formInput}
+                  value={formData.medicalConditions}
+                  onChange={handleInputChange}
+                  placeholder="Comma-separated (e.g. asthma, hypertension)"
+                  disabled={submitting}
+                />
+                <span className={styles.formHint}>
+                  Separate multiple items with commas.
+                </span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Fitness Goals</label>
+                <input
+                  type="text"
+                  name="fitnessGoals"
+                  className={styles.formInput}
+                  value={formData.fitnessGoals}
+                  onChange={handleInputChange}
+                  placeholder="Comma-separated (e.g. lose weight, build muscle)"
+                  disabled={submitting}
+                />
+                <span className={styles.formHint}>
+                  Separate multiple items with commas.
+                </span>
               </div>
 
               <div className={styles.modalActions}>
@@ -712,9 +891,19 @@ const Members = () => {
                 </span>
               </div>
               <div className={styles.deleteModalInfoItem}>
-                <span className={styles.deleteModalInfoLabel}>Plan:</span>
+                <span className={styles.deleteModalInfoLabel}>
+                  Booked sessions:
+                </span>
                 <span className={styles.deleteModalInfoValue}>
-                  {memberToDelete.plan}
+                  {memberToDelete.stats.totalBookedSessions}
+                </span>
+              </div>
+              <div className={styles.deleteModalInfoItem}>
+                <span className={styles.deleteModalInfoLabel}>
+                  Assigned plans:
+                </span>
+                <span className={styles.deleteModalInfoValue}>
+                  {memberToDelete.stats.totalAssignedPlans}
                 </span>
               </div>
             </div>
