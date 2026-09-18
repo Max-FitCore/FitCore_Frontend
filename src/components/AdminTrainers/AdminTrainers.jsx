@@ -40,7 +40,7 @@ api.interceptors.request.use(
 const adminTrainerService = {
   getAll: async () => {
     const { data } = await api.get('/admin/trainers');
-    return data; // { success, count, data: [...] }
+    return data;
   },
   getById: async (id) => {
     const { data } = await api.get(`/admin/trainers/${id}`);
@@ -72,7 +72,7 @@ const mapFromBackend = (t) => {
     phone: t.phone || '',
     location: t.location || '',
     bio: t.bio || '',
-    specialty: t.speciality || '—',
+    speciality: t.speciality || '',
     certifications: t.certifications || '',
     availability: t.availability || '',
     photoUrl: t.profilePicture?.url || '',
@@ -111,16 +111,18 @@ const Trainers = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    specialty: '',
     phone: '',
     location: '',
     bio: '',
+    speciality: '',
     certifications: '',
     availability: '',
     isActive: true,
   });
 
-  // ============ FETCH ============
+  /* ============================================================
+     FETCH
+     ============================================================ */
   const fetchTrainers = useCallback(async () => {
     try {
       setLoading(true);
@@ -143,7 +145,9 @@ const Trainers = () => {
     fetchTrainers();
   }, [fetchTrainers]);
 
-  // ============ TOAST ============
+  /* ============================================================
+     TOAST
+     ============================================================ */
   const showToastMessage = (msg, type = 'success') => {
     setToastMessage(msg);
     setToastType(type);
@@ -151,7 +155,9 @@ const Trainers = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // ============ FORM ============
+  /* ============================================================
+     FORM
+     ============================================================ */
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -165,10 +171,10 @@ const Trainers = () => {
     setFormData({
       name: '',
       email: '',
-      specialty: '',
       phone: '',
       location: '',
       bio: '',
+      speciality: '',
       certifications: '',
       availability: '',
       isActive: true,
@@ -177,23 +183,21 @@ const Trainers = () => {
     setFieldErrors({});
   };
 
-  // ============ ADD ============
   const handleAdd = () => {
     setEditingTrainer(null);
     resetForm();
     setIsModalOpen(true);
   };
 
-  // ============ EDIT ============
   const handleEdit = (trainer) => {
     setEditingTrainer(trainer);
     setFormData({
       name: trainer.name || '',
       email: trainer.email || '',
-      specialty: trainer.specialty === '—' ? '' : trainer.specialty || '',
       phone: trainer.phone || '',
       location: trainer.location || '',
       bio: trainer.bio || '',
+      speciality: trainer.speciality || '',
       certifications: trainer.certifications || '',
       availability: trainer.availability || '',
       isActive: trainer.isActive !== false,
@@ -203,7 +207,9 @@ const Trainers = () => {
     setIsModalOpen(true);
   };
 
-  // ============ DELETE ============
+  /* ============================================================
+     DELETE
+     ============================================================ */
   const handleDeleteClick = (trainer) => {
     setTrainerToDelete(trainer);
     setIsDeleteModalOpen(true);
@@ -234,7 +240,9 @@ const Trainers = () => {
     setIsDeleteModalOpen(false);
   };
 
-  // ============ VALIDATION ============
+  /* ============================================================
+     VALIDATION
+     ============================================================ */
   const validateForm = () => {
     const errs = {};
 
@@ -256,6 +264,8 @@ const Trainers = () => {
 
     if (formData.bio && formData.bio.length > 500)
       errs.bio = 'Bio cannot exceed 500 characters';
+    if (formData.speciality && formData.speciality.length > 200)
+      errs.speciality = 'Speciality cannot exceed 200 characters';
     if (formData.certifications && formData.certifications.length > 500)
       errs.certifications = 'Certifications cannot exceed 500 characters';
     if (formData.availability && formData.availability.length > 500)
@@ -265,7 +275,9 @@ const Trainers = () => {
     return Object.keys(errs).length === 0;
   };
 
-  // ============ SUBMIT ============
+  /* ============================================================
+     SUBMIT
+     ============================================================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting) return;
@@ -281,16 +293,15 @@ const Trainers = () => {
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
           bio: formData.bio?.trim() || null,
-          speciality: formData.specialty?.trim() || null,
+          speciality: formData.speciality?.trim() || null,
           certifications: formData.certifications?.trim() || null,
           availability: formData.availability?.trim() || null,
           isActive: formData.isActive,
         };
 
         const res = await adminTrainerService.update(editingTrainer.id, payload);
-        const updated = mapFromBackend(res.data); // controller returns { success, data: <user> }
-
-        // Preserve stats from the previous state (update endpoint doesn't recompute)
+        const updated = mapFromBackend(res.data);
+        // Preserve stats (update endpoint doesn't recompute)
         updated.stats = editingTrainer.stats;
 
         setTrainers((prev) =>
@@ -306,14 +317,18 @@ const Trainers = () => {
           phone: formData.phone?.trim() || null,
           location: formData.location?.trim() || null,
           bio: formData.bio?.trim() || null,
-          speciality: formData.specialty?.trim() || null,
+          speciality: formData.speciality?.trim() || null,
           certifications: formData.certifications?.trim() || null,
           availability: formData.availability?.trim() || null,
         };
 
         const res = await adminTrainerService.create(payload);
         const created = mapFromBackend(res.data);
-        created.stats = { totalSessions: 0, totalWorkoutPlans: 0, totalBookings: 0 };
+        created.stats = {
+          totalSessions: 0,
+          totalWorkoutPlans: 0,
+          totalBookings: 0,
+        };
 
         setTrainers((prev) => [created, ...prev]);
         showToastMessage(`${created.name} has been invited successfully`);
@@ -332,12 +347,20 @@ const Trainers = () => {
     }
   };
 
-  // ============ SCHEDULE (placeholder) ============
+  /* ============================================================
+     SCHEDULE (placeholder)
+     ============================================================ */
   const handleSchedule = (trainer) => {
-    showToastMessage(`Viewing schedule for ${trainer.name}`);
+    showToastMessage(
+      `${trainer.name} runs ${trainer.stats.totalSessions} active session${
+        trainer.stats.totalSessions === 1 ? '' : 's'
+      }`
+    );
   };
 
-  // ============ AVATAR HELPERS ============
+  /* ============================================================
+     AVATAR HELPER
+     ============================================================ */
   const initialsOf = (name = '') =>
     name
       .split(' ')
@@ -347,7 +370,9 @@ const Trainers = () => {
       .slice(0, 2)
       .toUpperCase();
 
-  // ============ RENDER ============
+  /* ============================================================
+     RENDER
+     ============================================================ */
   return (
     <div className={styles.trainersPage}>
       {/* Header */}
@@ -362,7 +387,11 @@ const Trainers = () => {
                 }`}
           </p>
         </div>
-        <button className={styles.inviteBtn} onClick={handleAdd}>
+        <button
+          className={styles.inviteBtn}
+          onClick={handleAdd}
+          type="button"
+        >
           <Plus size={18} />
           Invite trainer
         </button>
@@ -400,6 +429,7 @@ const Trainers = () => {
                   className={styles.deleteBtn}
                   onClick={() => handleDeleteClick(trainer)}
                   title="Delete trainer"
+                  type="button"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -423,12 +453,18 @@ const Trainers = () => {
                     <h3 className={styles.trainerName}>{trainer.name}</h3>
                     <span
                       className={`${styles.statusDot} ${
-                        trainer.isActive ? styles.statusActive : styles.statusInactive
+                        trainer.isActive
+                          ? styles.statusActive
+                          : styles.statusInactive
                       }`}
                       title={trainer.isActive ? 'Active' : 'Inactive'}
                     />
                   </div>
-                  <p className={styles.trainerSpecialty}>{trainer.specialty}</p>
+
+                  <p className={styles.trainerSpecialty}>
+                    {trainer.speciality || 'Speciality not set'}
+                  </p>
+
                   {trainer.email && (
                     <p className={styles.trainerEmail}>{trainer.email}</p>
                   )}
@@ -452,6 +488,7 @@ const Trainers = () => {
                     <button
                       className={`${styles.actionBtn} ${styles.editBtn}`}
                       onClick={() => handleEdit(trainer)}
+                      type="button"
                     >
                       <Edit2 size={14} style={{ marginRight: '4px' }} />
                       Edit
@@ -459,8 +496,12 @@ const Trainers = () => {
                     <button
                       className={`${styles.actionBtn} ${styles.scheduleBtn}`}
                       onClick={() => handleSchedule(trainer)}
+                      type="button"
                     >
-                      <ClipboardList size={14} style={{ marginRight: '4px' }} />
+                      <ClipboardList
+                        size={14}
+                        style={{ marginRight: '4px' }}
+                      />
                       Schedule
                     </button>
                   </div>
@@ -496,9 +537,9 @@ const Trainers = () => {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.modalForm}>
-              {/* Personal Information */}
+              {/* ---------- Account ---------- */}
               <div className={styles.formSection}>
-                <h3 className={styles.formSectionTitle}>Personal Information</h3>
+                <h3 className={styles.formSectionTitle}>Account</h3>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Full Name *</label>
@@ -514,7 +555,9 @@ const Trainers = () => {
                     disabled={submitting}
                   />
                   {fieldErrors.name && (
-                    <span className={styles.errorMessage}>{fieldErrors.name}</span>
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.name}
+                    </span>
                   )}
                 </div>
 
@@ -532,7 +575,9 @@ const Trainers = () => {
                     disabled={!!editingTrainer || submitting}
                   />
                   {fieldErrors.email && (
-                    <span className={styles.errorMessage}>{fieldErrors.email}</span>
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.email}
+                    </span>
                   )}
                   {editingTrainer && (
                     <span className={styles.formHint}>
@@ -565,6 +610,13 @@ const Trainers = () => {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* ---------- Personal Information ---------- */}
+              <div className={styles.formSection}>
+                <h3 className={styles.formSectionTitle}>
+                  Personal Information
+                </h3>
 
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
@@ -594,19 +646,6 @@ const Trainers = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Specialty</label>
-                  <input
-                    type="text"
-                    name="specialty"
-                    className={styles.formInput}
-                    value={formData.specialty}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Strength & Powerlifting"
-                    disabled={submitting}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Bio</label>
                   <textarea
                     name="bio"
@@ -622,14 +661,39 @@ const Trainers = () => {
                     style={{ resize: 'vertical', fontFamily: 'inherit' }}
                   />
                   {fieldErrors.bio && (
-                    <span className={styles.errorMessage}>{fieldErrors.bio}</span>
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.bio}
+                    </span>
                   )}
                 </div>
               </div>
 
-              {/* Professional Details */}
+              {/* ---------- Professional Details ---------- */}
               <div className={styles.formSection}>
-                <h3 className={styles.formSectionTitle}>Professional Details</h3>
+                <h3 className={styles.formSectionTitle}>
+                  Professional Details
+                </h3>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Speciality</label>
+                  <input
+                    type="text"
+                    name="speciality"
+                    className={`${styles.formInput} ${
+                      fieldErrors.speciality ? styles.inputError : ''
+                    }`}
+                    value={formData.speciality}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Strength & Powerlifting"
+                    maxLength={200}
+                    disabled={submitting}
+                  />
+                  {fieldErrors.speciality && (
+                    <span className={styles.errorMessage}>
+                      {fieldErrors.speciality}
+                    </span>
+                  )}
+                </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Certifications</label>
@@ -672,8 +736,12 @@ const Trainers = () => {
                     </span>
                   )}
                 </div>
+              </div>
 
-                {editingTrainer && (
+              {/* ---------- Status (edit only) ---------- */}
+              {editingTrainer && (
+                <div className={styles.formSection}>
+                  <h3 className={styles.formSectionTitle}>Status</h3>
                   <div className={styles.highlightToggle}>
                     <input
                       type="checkbox"
@@ -687,10 +755,10 @@ const Trainers = () => {
                       Active (visible and bookable)
                     </label>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Photo — read-only notice */}
+              {/* ---------- Photo (edit only) ---------- */}
               {editingTrainer && (
                 <div className={styles.formSection}>
                   <h3 className={styles.formSectionTitle}>Profile Photo</h3>
@@ -752,9 +820,9 @@ const Trainers = () => {
 
             <div className={styles.deleteModalWarning}>
               <p>
-                ⚠️ This will also delete {trainerToDelete.stats.totalSessions}{' '}
-                session(s) and {trainerToDelete.stats.totalWorkoutPlans}{' '}
-                workout plan(s)
+                ⚠️ This will also delete{' '}
+                {trainerToDelete.stats.totalSessions} session(s) and{' '}
+                {trainerToDelete.stats.totalWorkoutPlans} workout plan(s)
               </p>
             </div>
 

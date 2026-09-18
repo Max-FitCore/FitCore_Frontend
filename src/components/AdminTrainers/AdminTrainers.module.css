@@ -1101,3 +1101,68 @@
   from { transform: rotate(0); }
   to { transform: rotate(360deg); }
 }
+
+/* ===== Form sections ===== */
+.formSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.formSection:last-of-type {
+  border-bottom: none;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+}
+
+.formSectionTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--accent-lime);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 1rem 0;
+}
+
+.formHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* ===== Error states ===== */
+.inputError {
+  border-color: var(--error-red) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15) !important;
+}
+
+.errorMessage {
+  font-size: 0.75rem;
+  color: var(--error-red);
+  margin-top: 0.15rem;
+}
+
+/* ===== Photo notice ===== */
+.photoNotice {
+  padding: 0.85rem 1rem;
+  background: var(--bg-surface-alt);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 10px;
+}
+
+.photoNotice p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ===== Spinner ===== */
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
+}
